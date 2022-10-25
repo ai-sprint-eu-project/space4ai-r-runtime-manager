@@ -6,14 +6,13 @@
 
 ```sh
 git clone https://gitlab.cefriel.it/ai-sprint/runtime-manager.git
-cd runtime-manager
-python3 -m pip install . 
+cd runtime-manager/runtime-manager/bin
 ```
 
 ### Step2: Try --help
 
 ```sh
-runtime --help
+python3 runtime_manager_cli.py --help
 ```
 ### Step 3: copy auth.dat 
 Copy the file *auth.dat* in the application directory with the same format explained on [IM](https://imdocs.readthedocs.io/en/latest/gstarted.html?highlight=auth#authentication-file).
@@ -25,5 +24,5 @@ id = ec2; type = EC2; username = AK; password = SK
 ### Step 4: parcer the tosca
 
 ```sh
-runtime infras --application_dir
+python3 runtime_manager_cli.py infras --application_dir
 ```
