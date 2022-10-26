@@ -1,8 +1,8 @@
 import os
 
-im_auth_path_def = "auth.dat"
+im_auth_path_def = "/im/auth.dat"
 im_url_def = "https://appsgrycap.i3m.upv.es:31443/im"
-tosca_file_dir = "tosca_files"
+# tosca_file_dir = "tosca_files"
 def read_auth(im_auth_path):
     # if not im_auth and application_dir:
     #     im_auth = "%s/im/auth.dat" % application_dir
