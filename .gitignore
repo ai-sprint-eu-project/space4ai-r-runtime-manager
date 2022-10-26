@@ -1,1 +1,4 @@
 *.dat
+generated_toscas/base/*.yaml
+generated_toscas/optimal/*.yaml
+tosca_files/*.yaml
