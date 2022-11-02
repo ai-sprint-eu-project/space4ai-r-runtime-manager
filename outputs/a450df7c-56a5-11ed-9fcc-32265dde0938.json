@@ -1,0 +1,23 @@
+{
+    "outputs": {
+        "admin_token": "9d9euukqt2ywnh94",
+        "console_minio_endpoint": "https://console.minio.oscar-cluster-ihe9vis7.im.grycap.net/",
+        "dashboard_endpoint": "https://oscar-cluster-ihe9vis7.im.grycap.net/dashboard/",
+        "fe_node_creds": {
+            "user": "cloudadm",
+            "token_type": "private_key",
+            "token": "-----BEGIN RSA PRIVATE KEY-----\nMIIEogIBAAKCAQEA2OUx1FffRD2LGiv+qDaOBD3pdMspF89rWW654O6lGDAwk3fs\npZr13a4C3yGd6JvhpfVL9MNDCZbwtpuNPo2ooTbTjM4HaYIywhYh8RYv6AC9JpJ4\nmBDwQs8dfQPXWoOtn0UfZb6XthDUFrN+YPEQ6YZh1OAlGyZnnS0Y8+d33trkWv4p\nBIdaTjLgD15B+g2DNCRlBVBciWjro+IAdT9plmxcb9n3G9RirO9JPaLUL0hS3+a7\nLIsy3KrHxeA8Me/g5ocKAw273L2wGH72pzEUicgDrC6MIOMkEhaWT/OYr6BmcrGy\nvWKU6h+7PUivVTY/hXPhlymIAU8R3MRNSMjDfQIDAQABAoIBAF+z5eRJr6jHNRkj\nv3aOt+RUQy43NJcefUIVcuw2sN826EAxothBw2oAzaCSD0Cjg5H8ZfsGq45QLT+N\n7GllDTqxW/AdurSJ8AamyGw9+3510QBzkcWbd8Aq7lqKttvoDVShJeT5j6yUyViI\n8+Mni2xXUNSi4IyVyhNW4lNA16obgMJbzIIV3QpXjWkrZlrgzKWXIkjaQs0j6yMq\nsfhWOuG3s18QFfiNWEqzLq7AJcYFQMPVRgr/xcRIJk7gBtAE8aDsh4W0W+lW8Mym\nq8IGMRK49hatd7v515DVhH4YLo2azalE4k3k51ej1VnVpfIoxc1lgChNYXjeFllv\nA/vnResCgYEA6h5jCan/eu1GsQyDbPYK8YkTBsXnjsR85DC9IUL3lV1fFUbr3L96\nImOuYUWYxR/I0oCNaiiG3MEwGjWZ44CpIF1jkx+sVT2C3cKK6kT+iS9Vrh0Ye4h7\nHUa9m1+veIPpl3m+d1iXbtGitaDBhFxCW/Kc4NYn8qRW6YPwn4UShOMCgYEA7Sq2\nx5sijlD+4gRCeKS1ZjF4+SYv/D9FDxfoqtmFW7Xm2grv8a03I1LrxkV8HiKkVdar\nrefIXGRvhc9bTuM8Fm5N7DrHzwZ/p7V3U7Dge5QT7hB7cpHHhWDn0juFoEJLWwpV\nByWJ5boN5uraV3Ixogj38rOv1aQUJw8IB8V2ZB8CgYBicExsL9KAOWxT3VMVaY7I\naD5bxrLKUMvClsuvRJ0dbJkiNSPPOaN8+jTEKaNGn0qtV+geDtRF1eUH4CnIgrya\nIypPHi4z2R1BaR9HyaLMw95ey1UT/BroAGqQ/fal0bFSQ5pWTCXALt0fSWyU3sX4\nK1bTIrjBSWBR52wxZp6WyQKBgGEpa6JQ0xJc6l7sAdNtHwfT4synsWb1ALTTRbWg\n0bqlxgK0EmL/ZKRrFz6uPtAVvx+Ph9wCJhp75xh5v92MyJQj8naCClOtROUPOeim\ngQD/xD52sCxavtPMxIxjaDYkkrykefsojNr5ozJkKrlChkTsya+7n6C1zK/Hv7F3\nWy5fAoGAcxdUBFXM6/Nv8BaRAUh7oQOvCiebGYVKP2EE7qQN8+ByE7C7/UEkT6Xb\npYoU50skcHFQ38uQ/LUC59pulx8KZP9GLbHKrpN9Dudw95OTNyDjCCvRrugG1iKX\nMuvwSzSe6cPc/bIpSVvcPCdYZhpTFqYcurKqIT+9yRn8YvIw07c=\n-----END RSA PRIVATE KEY-----\n"
+        },
+        "fe_node_ip": null,
+        "minio_endpoint": "https://minio.oscar-cluster-ihe9vis7.im.grycap.net/",
+        "minio_password": "mo8kd7xl82kal89d",
+        "oscar_password": "os2jck1a38uk7mol",
+        "oscar_service_cred": {
+            "user": "oscar",
+            "token_type": "password",
+            "token": "os2jck1a38uk7mol"
+        },
+        "oscar_service_url": "https://oscar-cluster-ihe9vis7.im.grycap.net",
+        "oscarui_endpoint": "https://oscar-cluster-ihe9vis7.im.grycap.net/"
+    }
+}
