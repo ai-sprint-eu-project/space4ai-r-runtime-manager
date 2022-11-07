@@ -87,15 +87,7 @@ def difference(application_dir, old_dir, new_dir):
                         correct_name = values_tosca_old["component_name"]
                         production_new_dic["System"]["toscas"][values_new["name"]] = mix_toscas(correct_name, production_old_dic["System"]["toscas"], tosca_new)
         print("DONE exchange the infrastructures of each cluster")
-
-        for element, tosca in production_new_dic["System"]["toscas"].items():
-            tosca.pop("component_name", None)
-            with open("%s/production/ready-caseC/%s-ready.yaml" % (new_dir, element), 'w+') as f:
-                yaml.safe_dump(tosca, f, indent=2)
-            print("DONE and Save tosca ready")
-            fdl = generate_fdl(tosca)
-            with open("%s/production/fdl/fdl-%s.yaml" % (new_dir, element), 'w+') as f:
-                yaml.safe_dump(fdl, f, indent=2)
+        safe_toscas_fdl(new_dir, production_new_dic["System"]["toscas"])
 
     elif len(production_old_dic["System"]["Components"]) < len(production_new_dic["System"]["Components"]):
         print( "increase the number of clusters")

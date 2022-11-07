@@ -129,13 +129,8 @@ def get_oscar_service_json(properties):
 
 def generate_fdl(tosca):
     fdl = {}
-
-    done = []
-    # for tosca_file in tosca_files:
-    # if "infras.yaml" not in tosca_file:
-    # with open(tosca_file) as f:
-        # tosca = yaml.safe_load(f)
     oscar_name = None
+    done = []
     # Name in already deployed cluster
     if "oscar_name" in tosca["topology_template"]["inputs"]:
         oscar_name = tosca["topology_template"]["inputs"]["oscar_name"]["default"]
@@ -148,7 +143,14 @@ def generate_fdl(tosca):
             if service["name"] not in done:
                 cluster_name = oscar_name if oscar_name else node_name
                 fdl[cluster_name] = service
-                # fdl["functions"]["oscar"].append({cluster_name: service})
-                # done.append(service["name"])
-
     return fdl
+
+def safe_toscas_fdl(new_dir, toscas):
+    for element, tosca in toscas.items():
+            tosca.pop("component_name", None)
+            with open("%s/production/ready-caseC/%s-ready.yaml" % (new_dir, element), 'w+') as f:
+                yaml.safe_dump(tosca, f, indent=2)
+            fdl = generate_fdl(tosca)
+            with open("%s/production/fdl/fdl-%s.yaml" % (new_dir, element), 'w+') as f:
+                yaml.safe_dump(fdl, f, indent=2)
+    print("DONE new TOSCA and FDL saved")
