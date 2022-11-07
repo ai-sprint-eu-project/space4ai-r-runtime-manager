@@ -94,7 +94,6 @@ System:
   name: Mask Detection Application
   toscas:
     blurry-faces-onnx:
-      component_name: blurry-faces-onnx
       description: Template for launching an OSCAR Virtual Cluster
       imports:
       - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
@@ -448,7 +447,6 @@ System:
               - /
       tosca_definitions_version: tosca_simple_yaml_1_0
     mask-detector:
-      component_name: mask-detector
       description: Template for launching an OSCAR Virtual Cluster
       imports:
       - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
