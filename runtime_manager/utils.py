@@ -111,7 +111,6 @@ def infrastructures_verification(dic_old, dic_new):
 def get_oscar_service_json(properties):
     """Get the OSCAR service json"""
     res = {}
-
     for prop, value in properties.items():
         if value not in [None, [], {}]:
             if prop in ['name', 'script', 'alpine', 'input', 'output', 'storage_providers', 'image', 'memory']:
@@ -124,33 +123,61 @@ def get_oscar_service_json(properties):
                 if not isinstance(value, list):
                     value = [value]
                 res['image_pull_secrets'] = value
-
     return res
 
-def generate_fdl(tosca):
-    fdl = {}
-    oscar_name = None
+
+
+def generate_fdl(toscas):
+    fdl = {"functions": {"oscar": []}}
     done = []
-    # Name in already deployed cluster
-    if "oscar_name" in tosca["topology_template"]["inputs"]:
-        oscar_name = tosca["topology_template"]["inputs"]["oscar_name"]["default"]
-    # Name in IM generated cluster
-    elif "cluster_name" in tosca["topology_template"]["inputs"]:
-        oscar_name = tosca["topology_template"]["inputs"]["cluster_name"]["default"]
-    for node_name, node in tosca["topology_template"]["node_templates"].items():
-        if node["type"] == "tosca.nodes.aisprint.FaaS.Function":
-            service = get_oscar_service_json(node["properties"])
-            if service["name"] not in done:
-                cluster_name = oscar_name if oscar_name else node_name
-                fdl[cluster_name] = service
+    for name, tosca in toscas.items():
+        oscar_name = None
+        # Name in already deployed cluster
+        if "oscar_name" in tosca["topology_template"]["inputs"]:
+            oscar_name = tosca["topology_template"]["inputs"]["oscar_name"]["default"]
+        # Name in IM generated cluster
+        elif "cluster_name" in tosca["topology_template"]["inputs"]:
+            oscar_name = tosca["topology_template"]["inputs"]["cluster_name"]["default"]
+        for node_name, node in tosca["topology_template"]["node_templates"].items():
+            if node["type"] == "tosca.nodes.aisprint.FaaS.Function":
+                service = get_oscar_service_json(node["properties"])
+                if service["name"] not in done:
+                    cluster_name = oscar_name if oscar_name else node_name
+                    fdl["functions"]["oscar"].append({cluster_name: service})
+                    done.append(service["name"])
     return fdl
 
+
 def safe_toscas_fdl(new_dir, toscas):
+    fdl = generate_fdl(toscas)
+    with open("%s/production/fdl/fdl-new.yaml" % (new_dir), 'w+') as f:
+        yaml.safe_dump(fdl, f, indent=2)
     for element, tosca in toscas.items():
             tosca.pop("component_name", None)
             with open("%s/production/ready-caseC/%s-ready.yaml" % (new_dir, element), 'w+') as f:
                 yaml.safe_dump(tosca, f, indent=2)
-            fdl = generate_fdl(tosca)
-            with open("%s/production/fdl/fdl-%s.yaml" % (new_dir, element), 'w+') as f:
-                yaml.safe_dump(fdl, f, indent=2)
     print("DONE new TOSCA and FDL saved")
+    return fdl
+
+def oscar_cli(fdl):
+    print(fdl)
+    oscar_cli = "~/go/bin/oscar-cli"
+    # ADD
+    stream = os.popen(oscar_cli)
+    output = stream.read()
+    if output.find("/bin/sh") != 0:
+        print(output)
+        identifier = "oscar-cluster-f5vr5dfn"
+        endpoint = "https://oscar-cluster-f5vr5dfn.aisprint-cefriel.link"
+        user = "oscar"
+        password = "05gwt0zjc88m4udt"
+        # example oscar-cli  cluster add oscar-cluster-f5vr5dfn https://oscar-cluster-f5vr5dfn.aisprint-cefriel.link oscar 05gwt0zjc88m4udt
+        print("%s cluster add %s %s %s %s" % (oscar_cli, identifier, endpoint, user, password)) 
+        
+        # stream = os.popen("%s cluster add  %s %s %s %s" % (oscar_cli, identifier, endpoint, user, password)) 
+
+        # output = stream.read()
+
+    else:
+        print("It is not found oscar-cli path")
+    

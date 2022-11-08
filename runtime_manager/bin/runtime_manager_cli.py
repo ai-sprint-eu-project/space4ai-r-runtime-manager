@@ -87,7 +87,8 @@ def difference(application_dir, old_dir, new_dir):
                         correct_name = values_tosca_old["component_name"]
                         production_new_dic["System"]["toscas"][values_new["name"]] = mix_toscas(correct_name, production_old_dic["System"]["toscas"], tosca_new)
         print("DONE exchange the infrastructures of each cluster")
-        safe_toscas_fdl(new_dir, production_new_dic["System"]["toscas"])
+        fdl = safe_toscas_fdl(new_dir, production_new_dic["System"]["toscas"])
+        oscar_cli(fdl)
 
     elif len(production_old_dic["System"]["Components"]) < len(production_new_dic["System"]["Components"]):
         print( "increase the number of clusters")
