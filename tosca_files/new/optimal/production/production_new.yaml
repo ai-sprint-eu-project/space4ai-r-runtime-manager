@@ -322,7 +322,7 @@ System:
                 storage_provider: minio
               - path: blurry-faces-onnx/output
                 storage_provider: minio.oscar-cluster-u8g95rv1
-              script: /opt/blurry-faces-onnx/script.sh
+              script: /home/bedoya/cefriel/AISprint-test/api_python/test-with-tosca/ai-sprint-design/app_demo/aisprint/designs/blurry-faces-onnx/base/script.sh
               storage_providers:
                 minio:
                   oscar-cluster-u8g95rv1:
@@ -675,7 +675,7 @@ System:
               output:
               - path: mask-detector/output
                 storage_provider: minio
-              script: /opt/mask-detector/script.sh
+              script: /home/bedoya/cefriel/AISprint-test/api_python/test-with-tosca/ai-sprint-design/app_demo/aisprint/designs/mask-detector/base/script.sh
             requirements:
             - host: oscar
             - dependency: dns_reg

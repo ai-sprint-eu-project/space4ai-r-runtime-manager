@@ -226,7 +226,7 @@ topology_template:
         output:
         - path: mask-detector/output
           storage_provider: minio
-        script: /opt/mask-detector/script.sh
+        script: /home/bedoya/cefriel/AISprint-test/api_python/test-with-tosca/ai-sprint-design/app_demo/aisprint/designs/mask-detector/base/script.sh
       requirements:
       - host: oscar
       - dependency: dns_reg
