@@ -84,7 +84,7 @@ def component_name_verification(dic_old, dic_new):
             break
     if count_components == len(dic_old):
         components_same = True
-        print("all Components have the same name")
+        print("All Components have the same name")
     else:
         components_same = False
         print("Not all the components have the same name")
@@ -161,6 +161,7 @@ def safe_toscas_fdl(new_dir, toscas):
         fdls.append(generate_fdl(tosca)["functions"]["oscar"][0])
         identifier = list(fdl["functions"]["oscar"][0].keys())[0]
         fdl["functions"]["oscar"][0][identifier].pop("inputs", None)
+        
         with open("%s/production/ready-caseC/%s-ready.yaml" % (new_dir, name), 'w+') as f:
             yaml.safe_dump(tosca, f, indent=2)
         with open("%s/production/fdl/fdl-%s.yaml" % (new_dir, name), 'w+') as f:

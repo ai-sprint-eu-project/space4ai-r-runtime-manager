@@ -56,14 +56,14 @@ def difference(application_dir, old_dir, new_dir):
     production_new_dic = yaml_as_dict("%s/aisprint/deployments/optimal_deployment/production_deployment.yaml" % (application_dir))
     files = glob.glob("%s/*.yaml" % old_dir)
     production_old_dic["System"]["toscas"] = {}
-    i = 0
-    infras = {}
+
+    #Creation completed old/new-production dictionaries and relate them with their respective InfID
     for one_file in files:
         tosca_old_dic = yaml_as_dict(one_file)
         production_old_dic["System"]["toscas"][tosca_old_dic["component_name"]] = tosca_old_dic
-        infras[i] = {}
         if tosca_old_dic["component_name"] in production_old_dic["System"]["Components"]:
             production_old_dic["System"]["Components"][tosca_old_dic["component_name"]]["infid"] = tosca_old_dic["infid"]
+    
     files = glob.glob("%s/*.yaml" % new_dir)
     production_new_dic["System"]["toscas"] = {}
     for one_file in files:
@@ -78,12 +78,13 @@ def difference(application_dir, old_dir, new_dir):
         components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
         machines_same = infrastructures_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])
         if components_same == True and machines_same == True:
+
             print("Case: same machines and cluster, it is just to exchange the infrastructures between each component")
             for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
                 for components_new, values_new in production_new_dic["System"]["Components"].items():
                     if values_tosca_old["infid"] == values_new["infid"]:
                         tosca_new = production_new_dic["System"]["toscas"][values_new["name"]]
-                        tosca_old = values_tosca_old
+                        # tosca_old = values_tosca_old
                         correct_name = values_tosca_old["component_name"]
                         production_new_dic["System"]["toscas"][values_new["name"]] = mix_toscas(correct_name, production_old_dic["System"]["toscas"], tosca_new, application_dir)
         print("DONE exchange the infrastructures of each cluster")
@@ -91,7 +92,7 @@ def difference(application_dir, old_dir, new_dir):
 
         config_dir = "%s/production/fdl" % (new_dir)
         config = {"oscar": {}}
-        print(config)
+        
         with open("%s/config.yaml" % (config_dir), 'w+') as f:
                 yaml.safe_dump(config, f, indent=2)
                 
