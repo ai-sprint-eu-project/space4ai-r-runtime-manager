@@ -92,7 +92,7 @@ def difference(application_dir, old_dir, new_dir):
 
         config_dir = "%s/production/fdl" % (new_dir)
         config = {"oscar": {}}
-        
+
         with open("%s/config.yaml" % (config_dir), 'w+') as f:
                 yaml.safe_dump(config, f, indent=2)
                 
@@ -103,6 +103,7 @@ def difference(application_dir, old_dir, new_dir):
         print( "increase the number of clusters")
     else:
         print( "decrease the number of clusters")
+    
     #Save the the production
     with open("%s/production/production_old.yaml" % old_dir, 'w+') as f:
             yaml.safe_dump(production_old_dic, f, indent=2)
