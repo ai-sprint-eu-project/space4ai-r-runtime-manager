@@ -77,8 +77,9 @@ def difference(application_dir, old_dir, new_dir):
         print("the number of clusters are the same")
         components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
         machines_same = infrastructures_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])
-        if components_same == True and machines_same == True:
-
+        if components_same == 1 and machines_same == 1:
+            # Case C
+            print("We are in case C")
             print("Case: same machines and cluster, it is just to exchange the infrastructures between each component")
             for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
                 for components_new, values_new in production_new_dic["System"]["Components"].items():
@@ -87,20 +88,34 @@ def difference(application_dir, old_dir, new_dir):
                         # tosca_old = values_tosca_old
                         correct_name = values_tosca_old["component_name"]
                         production_new_dic["System"]["toscas"][values_new["name"]] = mix_toscas(correct_name, production_old_dic["System"]["toscas"], tosca_new, application_dir)
-        print("DONE exchange the infrastructures of each cluster")
-        fdls = safe_toscas_fdl(new_dir, production_new_dic["System"]["toscas"])
+            print("DONE exchange the infrastructures of each cluster")
+            fdls = safe_toscas_fdl(new_dir, production_new_dic["System"]["toscas"])
+            config_dir = "%s/production/fdl" % (new_dir)
+            config = {"oscar": {}}
+            with open("%s/config.yaml" % (config_dir), 'w+') as f:
+                    yaml.safe_dump(config, f, indent=2) 
+                    
+            for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
+                oscar_cli(new_dir, fdls, components_tosca_old)
 
-        config_dir = "%s/production/fdl" % (new_dir)
-        config = {"oscar": {}}
 
-        with open("%s/config.yaml" % (config_dir), 'w+') as f:
-                yaml.safe_dump(config, f, indent=2)
-                
-        for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
-            oscar_cli(new_dir, fdls, components_tosca_old)
+
+        elif components_same == 3  and machines_same == 1:
+            # Case D
+            print("We are in case D")
 
     elif len(production_old_dic["System"]["Components"]) < len(production_new_dic["System"]["Components"]):
         print( "increase the number of clusters")
+        components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
+        machines_same = infrastructures_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])
+        
+        
+        if components_same == 2 and machines_same == 2:
+            #Case A
+            print("We are at case A")
+        elif components_same == 2 and machines_same == 3:
+            #Case B
+            print("We are at case B")
     else:
         print( "decrease the number of clusters")
     

@@ -1,6 +1,6 @@
 System:
   Components:
-    blurry-faces-onnx:
+    blurry-faces-onnx-2:
       Containers:
         container1:
           GPURequirement: false
@@ -9,12 +9,12 @@ System:
           image: registry.gitlab.polimi.it/ai-sprint/blurry-faces-onnx:tag
           memorySize: 2048
           networkProtection: false
-          selectedExecutionResources: VM1
+          selectedExecutionResources: VM0
           trustedExecution: false
-      executionLayer: 2
-      infid: 39015641-5c20-11ed-800d-ca414e79af22
-      name: blurry-faces-onnx
-    mask-detector:
+      executionLayer: 1
+      infid: 192eda6d-5c20-11ed-9654-4653ee2e5e57
+      name: blurry-faces-onnx-2
+    mask-detector-2:
       Containers:
         container1:
           GPURequirement: false
@@ -23,11 +23,11 @@ System:
           image: registry.gitlab.polimi.it/ai-sprint/mask-detector:tag
           memorySize: 4096
           networkProtection: false
-          selectedExecutionResources: VM0
+          selectedExecutionResources: VM1
           trustedExecution: false
-      executionLayer: 1
-      infid: 192eda6d-5c20-11ed-9654-4653ee2e5e57
-      name: mask-detector
+      executionLayer: 2
+      infid: 39015641-5c20-11ed-800d-ca414e79af22
+      name: mask-detector-2
   NetworkDomains:
     ND1:
       AccessDelay: 2.77e-06
@@ -50,12 +50,12 @@ System:
                 processor1:
                   SGXFlag: false
                   architecture: amd64
-                  computingUnits: 2
+                  computingUnits: 4
                   internalMemory: 8
                   name: Xeon
                   type: SkyLake
               secureBoot: false
-              storageSize: 10
+              storageSize: 40
               storageType: SSD
               totalNodes: 2
           name: Public Cloud Layer 1
@@ -65,7 +65,7 @@ System:
           Resources:
             resource1:
               cost: 0.1
-              description: CEFRIEL AWS 2
+              description: AWS CEFRIEL 1
               measuredBoot: false
               memorySize: 4096
               name: VM1
@@ -79,11 +79,11 @@ System:
                   SGXFlag: false
                   architecture: amd64
                   computingUnits: 4
-                  internalMemory: 64
+                  internalMemory: 8
                   name: Xeon
                   type: SkyLake
               secureBoot: false
-              storageSize: 10
+              storageSize: 40
               storageType: SSD
               totalNodes: 2
           name: Public Cloud Layer 2
@@ -94,19 +94,20 @@ System:
   name: Mask Detection Application
   toscas:
     blurry-faces-onnx:
+      component_name: blurry-faces-onnx
       description: Template for launching an OSCAR Virtual Cluster
       imports:
       - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
       topology_template:
         inputs:
           admin_token:
-            default: epyoevj7qklou139
+            default: 8g07btb0rgtj1ko4
             type: string
           cert_user_email:
             default: jhondoe@server.com
             type: string
           cluster_name:
-            default: oscar-cluster-9q15lefj
+            default: oscar-cluster-xnfbp00p
             type: string
           domain_name:
             default: aisprint-cefriel.link
@@ -121,10 +122,10 @@ System:
             default: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
             type: string
           minio_password:
-            default: a1awhmxxb79383j0
+            default: bo39xhxkwdo3bt98
             type: string
           oscar_password:
-            default: 7rz11x07qab7zbfh
+            default: 1v1gky5wtkjomacu
             type: string
           storage_size:
             default: 100 GB
@@ -306,7 +307,7 @@ System:
               cpu: 0.9
               env_variables:
                 COMPONENT_NAME: blurry-faces-onnx
-                KCI: https://minio.oscar-cluster-9q15lefj.aisprint-cefriel.link
+                KCI: https://minio.oscar-cluster-xnfbp00p.aisprint-cefriel.link
                 MONIT_HOST: ai-sprint-blurry-faces-onnx-app-telegraf
                 MONIT_PORT: '8094'
               image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_base_amd64:latest
@@ -321,15 +322,15 @@ System:
               - path: blurry-faces-onnx/output
                 storage_provider: minio
               - path: blurry-faces-onnx/output
-                storage_provider: minio.oscar-cluster-u8g95rv1
-              script: /home/bedoya/cefriel/AISprint-test/api_python/test-with-tosca/ai-sprint-design/app_demo/aisprint/designs/blurry-faces-onnx/base/script.sh
+                storage_provider: minio.oscar-cluster-4pn94b5v
+              script: /opt/blurry-faces-onnx/script.sh
               storage_providers:
                 minio:
-                  oscar-cluster-u8g95rv1:
+                  oscar-cluster-4pn94b5v:
                     access_key: minio
-                    endpoint: https://minio.oscar-cluster-u8g95rv1.aisprint-cefriel.link
+                    endpoint: https://minio.oscar-cluster-4pn94b5v.aisprint-cefriel.link
                     region: us-east-1
-                    secret_key: 4dgq6zk5uqgqdty7
+                    secret_key: ek2w9kdon3z2r8ea
             requirements:
             - host: oscar
             - dependency: dns_reg
@@ -447,19 +448,20 @@ System:
               - /
       tosca_definitions_version: tosca_simple_yaml_1_0
     mask-detector:
+      component_name: mask-detector
       description: Template for launching an OSCAR Virtual Cluster
       imports:
       - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
       topology_template:
         inputs:
           admin_token:
-            default: fsffkx8y9i2yay56
+            default: rs0xep34sonnh441
             type: string
           cert_user_email:
             default: jhondoe@server.com
             type: string
           cluster_name:
-            default: oscar-cluster-u8g95rv1
+            default: oscar-cluster-4pn94b5v
             type: string
           domain_name:
             default: aisprint-cefriel.link
@@ -474,10 +476,10 @@ System:
             default: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
             type: string
           minio_password:
-            default: 4dgq6zk5uqgqdty7
+            default: ek2w9kdon3z2r8ea
             type: string
           oscar_password:
-            default: 9u6b9uxugvsqinsv
+            default: p1hgzldzpd142nsv
             type: string
           storage_size:
             default: 100 GB
@@ -659,7 +661,7 @@ System:
               cpu: 0.9
               env_variables:
                 COMPONENT_NAME: mask-detector
-                KCI: https://minio.oscar-cluster-u8g95rv1.aisprint-cefriel.link
+                KCI: https://minio.oscar-cluster-4pn94b5v.aisprint-cefriel.link
                 MONIT_HOST: ai-sprint-mask-detector-app-telegraf
                 MONIT_PORT: '8094'
               image: registry.gitlab.polimi.it/ai-sprint/toscarizer/mask-detector_base_amd64:latest
@@ -675,7 +677,7 @@ System:
               output:
               - path: mask-detector/output
                 storage_provider: minio
-              script: /home/bedoya/cefriel/AISprint-test/api_python/test-with-tosca/ai-sprint-design/app_demo/aisprint/designs/mask-detector/base/script.sh
+              script: /opt/mask-detector/script.sh
             requirements:
             - host: oscar
             - dependency: dns_reg

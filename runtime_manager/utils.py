@@ -78,13 +78,21 @@ def component_name_verification(dic_old, dic_new):
                 count_components += 1
             else:
                 print("The component name on '%s' on the new production does not match with the component name on old production" %(component_new))
-                break
+                # break
         else:
             print("The component '%s' in new production does not exist in old production, check the component assignation" % (component_new))
-            break
+            # break
     if count_components == len(dic_old):
-        components_same = True
+        # It is part of case C
+        components_same = 1
         print("All Components have the same name")
+    elif count_components >= 1:
+        # It is part of case A
+        components_same = 2
+        print("At least one Component is the same name")
+    elif count_components == 0:
+        components_same = 3
+        print("All the components are different")
     else:
         components_same = False
         print("Not all the components have the same name")
@@ -98,13 +106,22 @@ def infrastructures_verification(dic_old, dic_new):
                 count_machines += 1
                 values_new["infid"] = values_old["infid"]
     if count_machines == len(dic_old):
-        machines_same = True
-        print("All the infrastructures are the same")
+        # It is part of case C
+        if count_machines == len(dic_new):
+            machines_same = 1
+            print("All the infrastructures are the same")
+        elif count_machines < len(dic_new):
+            machines_same = 3
+            print("There are '%s' number of new infrastructures" % (len(dic_new)-count_machines))
+    elif count_machines == len(dic_new):
+        # It is part of case A
+        machines_same = 2
+        print("All the infrastructures in production_new are defined in pproduction_old")
     elif count_machines == 0:
-        machines_same = False
+        machines_same = 0
         print("All the infrastructures are different")
     else:
-        machines_same = False
+        machines_same = 0
         print("The infrastructures are not the same the same")
     return machines_same
 
