@@ -120,7 +120,7 @@ System:
           selectedExecutionResources: VM1
     component3:
       name: mask-detector
-      executionLayer: 2
+      executionLayer: 3
       Containers:
         container1:
           image: registry.gitlab.polimi.it/ai-sprint/mask-detector:tag
@@ -130,5 +130,5 @@ System:
           networkProtection: false
           fileSystemProtection: false
           GPURequirement: false
-          selectedExecutionResources: VM1
+          selectedExecutionResources: VM2
     
