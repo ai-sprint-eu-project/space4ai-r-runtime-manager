@@ -18,35 +18,7 @@ System:
               description: AWS CEFRIEL 1
               cost: 0.1
               memorySize: 4096
-              storageSize: 10
-              storageType: SSD
-              operatingSystemDistribution: Ubuntu
-              operatingSystemType: Linux
-              operatingSystemVersion: 22.04
-              operatingSystemImageId: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
-              secureBoot: false
-              measuredBoot: false
-              onSpot: false
-              processors:
-                processor1:
-                  name: Xeon
-                  type: SkyLake
-                  architecture: amd64
-                  computingUnits: 2
-                  internalMemory: 8
-                  SGXFlag: false
-        computationalLayer2:
-          name: Public Cloud Layer 2
-          number: 2
-          type: Virtual
-          Resources:
-            resource1:
-              name: VM1
-              totalNodes: 2
-              description: CEFRIEL AWS 2
-              cost: 0.1
-              memorySize: 4096
-              storageSize: 10
+              storageSize: 40
               storageType: SSD
               operatingSystemDistribution: Ubuntu
               operatingSystemType: Linux
@@ -61,7 +33,35 @@ System:
                   type: SkyLake
                   architecture: amd64
                   computingUnits: 4
-                  internalMemory: 64
+                  internalMemory: 8
+                  SGXFlag: false
+        computationalLayer2:
+          name: Public Cloud Layer 2
+          number: 2
+          type: Virtual
+          Resources:
+            resource1:
+              name: VM1
+              totalNodes: 2
+              description: AWS CEFRIEL 1
+              cost: 0.1
+              memorySize: 4096
+              storageSize: 40
+              storageType: SSD
+              operatingSystemDistribution: Ubuntu
+              operatingSystemType: Linux
+              operatingSystemVersion: 22.04
+              operatingSystemImageId: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
+              secureBoot: false
+              measuredBoot: false
+              onSpot: false
+              processors:
+                processor1:
+                  name: Xeon
+                  type: SkyLake
+                  architecture: amd64
+                  computingUnits: 4
+                  internalMemory: 8
                   SGXFlag: false
   Components:
     blurry-faces-onnx:

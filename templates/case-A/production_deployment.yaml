@@ -18,7 +18,7 @@ System:
               description: AWS CEFRIEL 1
               cost: 0.1
               memorySize: 4096
-              storageSize: 10
+              storageSize: 40
               storageType: SSD
               operatingSystemDistribution: Ubuntu
               operatingSystemType: Linux
@@ -32,7 +32,7 @@ System:
                   name: Xeon
                   type: SkyLake
                   architecture: amd64
-                  computingUnits: 2
+                  computingUnits: 4
                   internalMemory: 8
                   SGXFlag: false
         computationalLayer2:
@@ -46,7 +46,7 @@ System:
               description: AWS CEFRIEL 1
               cost: 0.1
               memorySize: 4096
-              storageSize: 10
+              storageSize: 40
               storageType: SSD
               operatingSystemDistribution: Ubuntu
               operatingSystemType: Linux
@@ -60,11 +60,11 @@ System:
                   name: Xeon
                   type: SkyLake
                   architecture: amd64
-                  computingUnits: 2
+                  computingUnits: 4
                   internalMemory: 8
                   SGXFlag: false
   Components:
-    component1:
+    blurry-faces-onnx-partition1-1:
       name: blurry-faces-onnx-partition1-1
       executionLayer: 1
       Containers:
@@ -77,7 +77,7 @@ System:
           fileSystemProtection: false
           GPURequirement: false
           selectedExecutionResources: VM0
-    component2:
+    blurry-faces-onnx-partition1-2:
       name: blurry-faces-onnx-partition1-2
       executionLayer: 2
       Containers:
@@ -90,7 +90,7 @@ System:
           fileSystemProtection: false
           GPURequirement: false
           selectedExecutionResources: VM1
-    component3:
+    mask-detector:
       name: mask-detector
       executionLayer: 2
       Containers:
