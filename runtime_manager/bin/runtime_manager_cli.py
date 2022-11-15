@@ -126,6 +126,47 @@ def outputs(application_dir, dir_to_save):
             json.dump(json.loads(output), f, ensure_ascii=False, indent=4)
         print("DONE. OUTPUT json file saved at %s/%s.json" % (dir_to_save, InfId))
 
+        outputDict = json.loads(output)
+
+        admin_token = outputDict["outputs"]["admin_token"]
+        print("admin_token:", admin_token)
+
+        console_minio_endpoint = outputDict["outputs"]["console_minio_endpoint"]
+        print("console_minio_endpoint:", console_minio_endpoint)
+
+        dashboard_endpoint = outputDict["outputs"]["dashboard_endpoint"]
+        print("dashboard_endpoint:", dashboard_endpoint)
+
+        fe_node_creds_user = outputDict["outputs"]["fe_node_creds"]["user"]
+        print("fe_node_creds_user:", fe_node_creds_user)
+
+        fe_node_creds_token_type = outputDict["outputs"]["fe_node_creds"]["token_type"]
+        print("fe_node_creds_token_type:", fe_node_creds_token_type)
+
+        fe_node_creds_token = outputDict["outputs"]["fe_node_creds"]["token"]
+        print("fe_node_creds_token:\n", fe_node_creds_token)
+
+        fe_node_ip = outputDict["outputs"]["fe_node_ip"]
+        print("fe_node_ip:", fe_node_ip)
+
+        minio_endpoint = outputDict["outputs"]["minio_endpoint"]
+        print("minio_endpoint:", minio_endpoint)
+
+        minio_password = outputDict["outputs"]["minio_password"]
+        print("minio_password:", minio_password)
+
+        oscar_password = outputDict["outputs"]["oscar_password"]
+        print("oscar_password:", oscar_password)
+
+        oscar_service_cred = outputDict["outputs"]["oscar_service_cred"]
+        print("oscar_service_cred:", oscar_service_cred)
+
+        oscar_service_url = outputDict["outputs"]["oscar_service_url"]
+        print("oscar_service_url:", oscar_service_url)
+
+        oscarui_endpoint = outputDict["outputs"]["oscarui_endpoint"]
+        print("oscarui_endpoint:", oscarui_endpoint)
+
 
 
 
