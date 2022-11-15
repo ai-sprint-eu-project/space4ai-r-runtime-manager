@@ -1,4 +1,6 @@
 *.dat
+*.pyc
 generated_toscas/base/*.yaml
 generated_toscas/optimal/*.yaml
 tosca_files/*.yaml
+runtime_manager/__pycache__/
