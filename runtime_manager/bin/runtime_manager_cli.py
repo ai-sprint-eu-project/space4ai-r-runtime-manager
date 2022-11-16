@@ -61,15 +61,19 @@ def difference(application_dir, old_dir, new_dir):
     for one_file in files:
         tosca_old_dic = yaml_as_dict(one_file)
         production_old_dic["System"]["toscas"][tosca_old_dic["component_name"]] = tosca_old_dic
+        ## ADD a component that overwrite the component "component1" for "component_name(blurryfaces or mask-detector)"
         if tosca_old_dic["component_name"] in production_old_dic["System"]["Components"]:
             production_old_dic["System"]["Components"][tosca_old_dic["component_name"]]["infid"] = tosca_old_dic["infid"]
     
     files = glob.glob("%s/*.yaml" % new_dir)
     production_new_dic["System"]["toscas"] = {}
     for one_file in files:
+        name_component = one_file.split("/")[-1].split(".")[0]
         tosca_new_dic = yaml_as_dict(one_file)
-        tosca_new_dic = place_name(tosca_new_dic)
-        production_new_dic["System"]["toscas"][tosca_new_dic["component_name"]] = tosca_new_dic
+        # tosca_new_dic = place_name(tosca_new_dic)
+        tosca_new_dic["component_name"] = name_component
+        # print(tosca_new_dic["component_name"])
+        production_new_dic["System"]["toscas"][name_component] = tosca_new_dic
     
     
     # Make a verification of the case--------------------------------------
@@ -85,7 +89,6 @@ def difference(application_dir, old_dir, new_dir):
                 for components_new, values_new in production_new_dic["System"]["Components"].items():
                     if values_tosca_old["infid"] == values_new["infid"]:
                         tosca_new = production_new_dic["System"]["toscas"][values_new["name"]]
-                        # tosca_old = values_tosca_old
                         correct_name = values_tosca_old["component_name"]
                         production_new_dic["System"]["toscas"][values_new["name"]] = mix_toscas(correct_name, production_old_dic["System"]["toscas"], tosca_new, application_dir)
             print("DONE exchange the infrastructures of each cluster")
@@ -113,6 +116,13 @@ def difference(application_dir, old_dir, new_dir):
         if components_same == 2 and machines_same == 2:
             #Case A
             print("We are at case A")
+            for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
+                for components_new, values_new in production_new_dic["System"]["Components"].items():
+                    if values_tosca_old["infid"] == values_new["infid"]:
+                        tosca_new = production_new_dic["System"]["toscas"][values_new["name"]]
+                        correct_name = values_tosca_old["component_name"]
+                        production_new_dic["System"]["toscas"][values_new["name"]] = mix_toscas_A(correct_name, production_old_dic["System"]["toscas"], tosca_new, application_dir)
+            print("DONE place partitioning of one component on the same infrastructure")
         elif components_same == 2 and machines_same == 3:
             #Case B
             print("We are at case B")

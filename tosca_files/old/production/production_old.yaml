@@ -50,12 +50,12 @@ System:
                 processor1:
                   SGXFlag: false
                   architecture: amd64
-                  computingUnits: 2
+                  computingUnits: 4
                   internalMemory: 8
                   name: Xeon
                   type: SkyLake
               secureBoot: false
-              storageSize: 10
+              storageSize: 40
               storageType: SSD
               totalNodes: 2
           name: Public Cloud Layer 1
@@ -65,7 +65,7 @@ System:
           Resources:
             resource1:
               cost: 0.1
-              description: CEFRIEL AWS 2
+              description: AWS CEFRIEL 1
               measuredBoot: false
               memorySize: 4096
               name: VM1
@@ -79,11 +79,11 @@ System:
                   SGXFlag: false
                   architecture: amd64
                   computingUnits: 4
-                  internalMemory: 64
+                  internalMemory: 8
                   name: Xeon
                   type: SkyLake
               secureBoot: false
-              storageSize: 10
+              storageSize: 40
               storageType: SSD
               totalNodes: 2
           name: Public Cloud Layer 2

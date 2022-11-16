@@ -1,6 +1,7 @@
 import os
 import yaml
 import glob
+import copy
 
 im_auth_path_def = "/im/auth.dat"
 im_url_def = "https://appsgrycap.i3m.upv.es:31443/im"
@@ -69,6 +70,27 @@ def mix_toscas(correct_name, toscas_old, tosca_new, application_dir):
         }
     tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["script"] = "%s/aisprint/designs/%s/base/script.sh" % (application_dir, tosca_new["component_name"])
     return tosca_new
+
+    
+def mix_toscas_A(correct_name, toscas_old, tosca_new, application_dir):
+    tosca_new["topology_template"]["inputs"] = copy.deepcopy(toscas_old[correct_name]["topology_template"]["inputs"])
+    oscar_service_old = toscas_old[correct_name]["topology_template"]["outputs"]["oscar_service_url"]["value"]["get_attribute"][0] 
+    oscar_service_new = tosca_new["topology_template"]["outputs"]["oscar_service_url"]["value"]["get_attribute"][0] 
+    for item, values in tosca_new["topology_template"]["node_templates"].items():
+        if "oscar_service_" in item:
+            tosca_new["topology_template"]["node_templates"][item]["properties"]["env_variables"]["KCI"] = toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["env_variables"]["KCI"]
+            if len(tosca_new["topology_template"]["node_templates"][item]["properties"]["output"]) > 1:
+                cluster_name = toscas_old[correct_name]["topology_template"]["inputs"]["cluster_name"]["default"]
+                for output_new in tosca_new["topology_template"]["node_templates"][item]["properties"]["output"]:
+                    for output_old in toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["output"]:
+                        if output_new["storage_provider"] != "minio" and output_old["storage_provider"] != "minio" :
+                            output_new["storage_provider"] = output_old["storage_provider"]
+                            tosca_new["topology_template"]["node_templates"][item]["properties"]["storage_providers"] = copy.deepcopy(toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["storage_providers"])
+            tosca_new["topology_template"]["node_templates"][item]["properties"]["script"] = "%s/aisprint/designs/%s/base/script.sh" % (application_dir, tosca_new["component_name"])
+    return tosca_new
+
+
+
 
 def component_name_verification(dic_old, dic_new):
     count_components = 0
