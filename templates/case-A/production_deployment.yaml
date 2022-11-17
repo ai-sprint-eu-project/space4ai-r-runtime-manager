@@ -1,3 +1,4 @@
+#CASO A - TEMPLATE
 System:
   name: Mask Detection Application
   NetworkDomains:
@@ -79,7 +80,7 @@ System:
           selectedExecutionResources: VM0
     blurry-faces-onnx-partition1-2:
       name: blurry-faces-onnx-partition1-2
-      executionLayer: 2
+      executionLayer: 1
       Containers:
         container1:
           image: registry.gitlab.polimi.it/ai-sprint/blurry-faces-onnx:tag
@@ -89,7 +90,7 @@ System:
           networkProtection: false
           fileSystemProtection: false
           GPURequirement: false
-          selectedExecutionResources: VM1
+          selectedExecutionResources: VM0
     mask-detector:
       name: mask-detector
       executionLayer: 2

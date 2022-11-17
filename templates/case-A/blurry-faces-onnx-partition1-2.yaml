@@ -1,16 +1,17 @@
+# CASE A - TOSCA BLURRY FACES PARTITION 2 TEMPLATE
 description: Template for launching an OSCAR Virtual Cluster
 imports:
 - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
 topology_template:
   inputs:
     admin_token:
-      default: kczk85450ixjs1zv
+      default: jmpner0r3x4nqmky
       type: string
     cert_user_email:
       default: jhondoe@server.com
       type: string
     cluster_name:
-      default: oscar-cluster-5qf9mi8o
+      default: oscar-cluster-it4fsld7
       type: string
     domain_name:
       default: aisprint-cefriel.link
@@ -25,10 +26,10 @@ topology_template:
       default: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
       type: string
     minio_password:
-      default: fk31jrl6l8ufh9gm
+      default: n1hmmrp2c7534ct8
       type: string
     oscar_password:
-      default: wq7ammws53en3fus
+      default: 4igp3zf465v2vae9
       type: string
     storage_size:
       default: 100 GB
@@ -210,7 +211,7 @@ topology_template:
         cpu: 0.9
         env_variables:
           COMPONENT_NAME: blurry-faces-onnx-partition1-1
-          KCI: https://minio.oscar-cluster-5qf9mi8o.aisprint-cefriel.link
+          KCI: https://minio.oscar-cluster-it4fsld7.aisprint-cefriel.link
           MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-1-app-telegraf
           MONIT_PORT: '8094'
         image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_1_amd64:latest
@@ -232,7 +233,7 @@ topology_template:
         cpu: 0.9
         env_variables:
           COMPONENT_NAME: blurry-faces-onnx-partition1-2
-          KCI: https://minio.oscar-cluster-5qf9mi8o.aisprint-cefriel.link
+          KCI: https://minio.oscar-cluster-it4fsld7.aisprint-cefriel.link
           MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-2-app-telegraf
           MONIT_PORT: '8094'
         image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_2_amd64:latest
@@ -247,15 +248,15 @@ topology_template:
         - path: blurry-faces-onnx-partition1-2/output
           storage_provider: minio
         - path: blurry-faces-onnx-partition1-2/output
-          storage_provider: minio.oscar-cluster-3br70goo
+          storage_provider: minio.oscar-cluster-yyqrf4ga
         script: /opt/blurry-faces-onnx-partition1-2/script.sh
         storage_providers:
           minio:
-            oscar-cluster-3br70goo:
+            oscar-cluster-yyqrf4ga:
               access_key: minio
-              endpoint: https://minio.oscar-cluster-3br70goo.aisprint-cefriel.link
+              endpoint: https://minio.oscar-cluster-yyqrf4ga.aisprint-cefriel.link
               region: us-east-1
-              secret_key: qm691np7g97vm1bc
+              secret_key: 7xp5r47mnh7218r3
       requirements:
       - host: oscar
       - dependency: dns_reg

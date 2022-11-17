@@ -1,3 +1,4 @@
+#CASO A - TEMPLATE
 System:
   name: ai-sprint_mask_detection_app
   components: ['blurry-faces-onnx-partition1-1', 'blurry-faces-onnx-partition1-2', 'mask-detector'] 

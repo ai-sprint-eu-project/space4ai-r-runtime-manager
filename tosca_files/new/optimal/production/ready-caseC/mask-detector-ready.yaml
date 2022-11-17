@@ -214,8 +214,6 @@ topology_template:
           MONIT_HOST: ai-sprint-mask-detector-app-telegraf
           MONIT_PORT: '8094'
         image: registry.gitlab.polimi.it/ai-sprint/toscarizer/mask-detector_base_amd64:latest
-        image_pull_secrets:
-        - gitlabpolimi
         input:
         - path: mask-detector/input
           storage_provider: minio
@@ -247,7 +245,7 @@ topology_template:
         host:
           properties:
             mem_size: 4096 MB
-            num_cpus: 2
+            num_cpus: 4
             num_gpus: 0
             preemtible_instance: false
             sgx: false

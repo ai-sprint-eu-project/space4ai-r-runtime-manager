@@ -1,16 +1,17 @@
+# CASE A - TOSCA MASK DETECTOR TEMPLATE
 description: Template for launching an OSCAR Virtual Cluster
 imports:
 - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
 topology_template:
   inputs:
     admin_token:
-      default: ma3ftawkaofvctlp
+      default: jkh6yfls3cpmkagx
       type: string
     cert_user_email:
       default: jhondoe@server.com
       type: string
     cluster_name:
-      default: oscar-cluster-3br70goo
+      default: oscar-cluster-yyqrf4ga
       type: string
     domain_name:
       default: aisprint-cefriel.link
@@ -25,10 +26,10 @@ topology_template:
       default: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
       type: string
     minio_password:
-      default: qm691np7g97vm1bc
+      default: 7xp5r47mnh7218r3
       type: string
     oscar_password:
-      default: ac5idri4ffpm3dib
+      default: 3u7ff3d65xywug5m
       type: string
     storage_size:
       default: 100 GB
@@ -210,7 +211,7 @@ topology_template:
         cpu: 0.9
         env_variables:
           COMPONENT_NAME: mask-detector
-          KCI: https://minio.oscar-cluster-3br70goo.aisprint-cefriel.link
+          KCI: https://minio.oscar-cluster-yyqrf4ga.aisprint-cefriel.link
           MONIT_HOST: ai-sprint-mask-detector-app-telegraf
           MONIT_PORT: '8094'
         image: registry.gitlab.polimi.it/ai-sprint/toscarizer/mask-detector_base_amd64:latest

@@ -12,7 +12,7 @@ System:
           selectedExecutionResources: VM0
           trustedExecution: false
       executionLayer: 1
-      infid: 192eda6d-5c20-11ed-9654-4653ee2e5e57
+      infid: 3f0d71e9-6663-11ed-b228-6ee17b71464b
       name: blurry-faces-onnx
     mask-detector:
       Containers:
@@ -26,7 +26,7 @@ System:
           selectedExecutionResources: VM1
           trustedExecution: false
       executionLayer: 2
-      infid: 39015641-5c20-11ed-800d-ca414e79af22
+      infid: 2aaa347e-665a-11ed-bd11-4653ee2e5e57
       name: mask-detector
   NetworkDomains:
     ND1:
@@ -98,7 +98,7 @@ System:
       description: Template for launching an OSCAR Virtual Cluster
       imports:
       - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
-      infid: 192eda6d-5c20-11ed-9654-4653ee2e5e57
+      infid: 3f0d71e9-6663-11ed-b228-6ee17b71464b
       topology_template:
         inputs:
           admin_token:
@@ -312,8 +312,6 @@ System:
                 MONIT_HOST: ai-sprint-blurry-faces-onnx-app-telegraf
                 MONIT_PORT: '8094'
               image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_base_amd64:latest
-              image_pull_secrets:
-              - gitlabpolimi
               input:
               - path: blurry-faces-onnx/input
                 storage_provider: minio
@@ -323,7 +321,7 @@ System:
               - path: blurry-faces-onnx/output
                 storage_provider: minio
               - path: blurry-faces-onnx/output
-                storage_provider: minio.oscar-cluster-9q15lefj
+                storage_provider: minio.oscar-cluster-u8g95rv1
               script: /opt/blurry-faces-onnx/script.sh
               storage_providers:
                 minio:
@@ -453,7 +451,7 @@ System:
       description: Template for launching an OSCAR Virtual Cluster
       imports:
       - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
-      infid: 39015641-5c20-11ed-800d-ca414e79af22
+      infid: 2aaa347e-665a-11ed-bd11-4653ee2e5e57
       topology_template:
         inputs:
           admin_token:
@@ -667,8 +665,6 @@ System:
                 MONIT_HOST: ai-sprint-mask-detector-app-telegraf
                 MONIT_PORT: '8094'
               image: registry.gitlab.polimi.it/ai-sprint/toscarizer/mask-detector_base_amd64:latest
-              image_pull_secrets:
-              - gitlabpolimi
               input:
               - path: mask-detector/input
                 storage_provider: minio

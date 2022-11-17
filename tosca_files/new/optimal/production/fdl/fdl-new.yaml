@@ -7,8 +7,6 @@
         MONIT_HOST: ai-sprint-mask-detector-app-telegraf
         MONIT_PORT: '8094'
     image: registry.gitlab.polimi.it/ai-sprint/toscarizer/mask-detector_base_amd64:latest
-    image_pull_secrets:
-    - gitlabpolimi
     input:
     - path: mask-detector/input
       storage_provider: minio
@@ -60,8 +58,6 @@
         MONIT_HOST: ai-sprint-blurry-faces-onnx-app-telegraf
         MONIT_PORT: '8094'
     image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_base_amd64:latest
-    image_pull_secrets:
-    - gitlabpolimi
     input:
     - path: blurry-faces-onnx/input
       storage_provider: minio
@@ -104,10 +100,3 @@
     - path: blurry-faces-onnx/output
       storage_provider: minio.oscar-cluster-u8g95rv1
     script: /home/bedoya/cefriel/AISprint-test/api_python/test-with-tosca/ai-sprint-design/app_demo/aisprint/designs/blurry-faces-onnx/base/script.sh
-    storage_providers:
-      minio:
-        oscar-cluster-u8g95rv1:
-          access_key: minio
-          endpoint: https://minio.oscar-cluster-u8g95rv1.aisprint-cefriel.link
-          region: us-east-1
-          secret_key: 4dgq6zk5uqgqdty7
