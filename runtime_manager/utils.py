@@ -202,34 +202,91 @@ def generate_fdl(tosca):
             if "storage_providers" in service:
                 fdl["storage_providers"] = copy.deepcopy(service["storage_providers"])
                 service.pop("storage_providers", None)
-            service["inputs"] = inputs
+            service["inputs"] = copy.deepcopy(inputs)
             if service["name"] not in done:
                 cluster_name = oscar_name if oscar_name else node_name
                 fdl["functions"]["oscar"].append({cluster_name: service})
                 done.append(service["name"])
     return fdl
 
-
 def save_toscas_fdl(new_dir, toscas, case):
-    fdls = []
+    fdls = {
+            "functions": {
+            },
+            "storage_providers": {
+                "minio": {
+                }
+                # It can be added the support for the S3 and Onedata storage providers
+            }
+         }
+    clusters = []
+    done = []
     for name, tosca in toscas.items():
         fdl = generate_fdl(tosca)
-        tosca.pop("component_name", None)
         identifier = list(fdl["functions"]["oscar"][0].keys())[0]
+        if "storage_providers" in fdl:
+            if "minio" in fdl["storage_providers"]:
+                for cluster, data in fdl["storage_providers"]["minio"].items():
+                    fdls["storage_providers"]["minio"][cluster] = data
+            elif "s3" in fdl["storage_providers"]:
+                print("The 's3' storage provider is not supported yet")
+            elif "onedata" in fdl["storage_providers"]:
+                print("The 'onedata' storage provider is not supported yet")
+            elif  "webdav" in fdl["storage_providers"]:
+                print("The 'webdav' storage provider is not supported yet")
+            else:
+                print("The used storage provider is not supported")
+        tosca.pop("component_name", None)
         for service in fdl["functions"]["oscar"]:
             service[identifier].pop("inputs", None)
-        fdls.append(generate_fdl(tosca)["functions"]["oscar"][0])
+        generated = generate_fdl(tosca)["functions"]["oscar"]
+        if len(generated) != 1:
+            for values in generated:
+                if identifier not in done:
+                        clusters.append(values)   
+        else:
+            clusters.append(generated[0])
+        done.append(identifier)
         with open("%s/production/ready-case%s/%s-ready.yaml" % (new_dir, case, name), 'w+') as f:
             yaml.safe_dump(tosca, f, indent=2)
         with open("%s/production/fdl/fdl-%s.yaml" % (new_dir, name), 'w+') as f:
             yaml.safe_dump(fdl, f, indent=2)
+    fdls["functions"]["oscar"] = clusters
     with open("%s/production/fdl/fdl-new.yaml" % (new_dir), 'w+') as f:
         yaml.safe_dump(fdls, f, indent=2)
     print("DONE new TOSCA and FDL saved")
     return fdls
 
+# def save_toscas_fdl(new_dir, toscas, case):
+#     fdls = []
+#     done = []
+#     for name, tosca in toscas.items():
+#         fdl = generate_fdl(tosca)
+#         tosca.pop("component_name", None)
+#         identifier = list(fdl["functions"]["oscar"][0].keys())[0]
+#         for service in fdl["functions"]["oscar"]:
+#             service[identifier].pop("inputs", None)
+#         # print(len(generate_fdl(tosca)["functions"]["oscar"]))
+#         generated = generate_fdl(tosca)["functions"]["oscar"]
+#         if len(generated) != 1:
+#             for values in generated:
+#                 if identifier not in done:
+#                         fdls.append(values)   
+#         else:
+#             fdls.append(generated[0])
+#         done.append(identifier)
+#         print(done)
+#         with open("%s/production/ready-case%s/%s-ready.yaml" % (new_dir, case, name), 'w+') as f:
+#             yaml.safe_dump(tosca, f, indent=2)
+#         with open("%s/production/fdl/fdl-%s.yaml" % (new_dir, name), 'w+') as f:
+#             yaml.safe_dump(fdl, f, indent=2)
+#     with open("%s/production/fdl/fdl-new.yaml" % (new_dir), 'w+') as f:
+#         yaml.safe_dump(fdls, f, indent=2)
+#     print("DONE new TOSCA and FDL saved")
+#     return fdls
 
-def oscar_cli(new_dir, fdls, component,case):
+
+def oscar_cli(new_dir, fdls, component, case):
     oscar_cli = "~/go/bin/oscar-cli"
     new_dir = "%s/production/fdl" % (new_dir)
     config_dir = "%s/config.yaml" % (new_dir)
@@ -237,10 +294,10 @@ def oscar_cli(new_dir, fdls, component,case):
     output = stream.read()
     if "/bin/sh" not in stream.read():
         # FOR NOW IT IS FOR ONLY ONE SERVICE
-        for fdl in fdls:
+        for fdl in fdls["functions"]["oscar"]:
             identifier = list(fdl.keys())[0]
-            print(identifier)
             value = list(fdl.values())[0]
+            # print(list(fdl.keys()))
             if case == "C":
                 if component != value["environment"]["Variables"]["COMPONENT_NAME"]:
                     component_name = value["environment"]["Variables"]["COMPONENT_NAME"]
@@ -278,14 +335,106 @@ def oscar_cli(new_dir, fdls, component,case):
                             print(component_name)
                             if component_name in output:
                                 print("The FDL of %s has been apply correctly" % component_name)
+                                print("DONE Update of cluster images in the infrastructures")
                         else:
                             print(output)
                             print("ERROR applying the FDL")        
                     else:
-                        print("Error in the addition of the cluster with oscar_cli at the component %s" % name)
-            elif case == "A":
-                print("Oscar case A")
-        print("DONE Update of cluster images in the infrastructures")
+                        print("Error in the addition of the cluster with oscar_cli at the component %s" % component_name)
+        if case == "A":
+            for fdl in fdls["functions"]["oscar"]:
+                identifier = list(fdl.keys())[0]
+                value = list(fdl.values())[0]
+                component_name =  value["environment"]["Variables"]["COMPONENT_NAME"]
+                print("--------------------------------------------------")
+                print("component name= " + component_name)
+
+                endpoint = "https://%s.%s" % (identifier,  value["inputs"]["domain_name"]["default"])
+                password = value["inputs"]["oscar_password"]["default"]
+                # example oscar-cli  cluster add oscar-cluster-f5vr5dfn https://oscar-cluster-f5vr5dfn.aisprint-cefriel.link oscar 05gwt0zjc88m4udt 
+                command = "%s cluster add  %s %s oscar %s --config %s" % (oscar_cli, identifier, endpoint, password, config_dir)
+                print("CLUSTER ADD " + command)
+                stream = os.popen(command) 
+                output = stream.read()
+                print(output)
+                if "successfully stored" in output:                            
+                    command = "%s service list  -c %s --config %s " % (oscar_cli, identifier, config_dir)
+                    print("SERVICE LIST: " + command)
+                    stream = os.popen(command)
+                    output = stream.read()
+                    print(output)
+                    if "There are no services in the cluster" not in output:
+                        output_split = output.split("\n")
+                        for line in output_split:
+                            if "NAME" not in line and line != "":
+                                service_old = line.split("\t")[0]
+                                command = "%s service remove %s -c %s --config %s" % (oscar_cli, service_old, identifier, config_dir)
+                                print("SERVICE REMOVE: " + command)
+                                stream = os.popen(command)
+                                output = stream.read()
+                                print(output)
+            command = "%s apply %s/fdl-new.yaml --config %s" % (oscar_cli, new_dir, config_dir)
+            print("APPLY: " + command)
+            stream = os.popen(command)
+            output = stream.read()
+            print(output)
+                # break
+            # if component != value["environment"]["Variables"]["COMPONENT_NAME"]:
+            #     print(component)
+            #     print(value["environment"]["Variables"]["COMPONENT_NAME"])
+            #     print("------------")
+                #CAMBIAR approach para el fdl, que parece funcionar solo con un tosca general!
+
+                
+                # component_name = value["environment"]["Variables"]["COMPONENT_NAME"]
+                # endpoint = "https://%s.%s" % (identifier,  value["inputs"]["domain_name"]["default"])
+                # password = value["inputs"]["oscar_password"]["default"]
+                # # example oscar-cli  cluster add oscar-cluster-f5vr5dfn https://oscar-cluster-f5vr5dfn.aisprint-cefriel.link oscar 05gwt0zjc88m4udt 
+                # command = "%s cluster add  %s %s oscar %s --config %s" % (oscar_cli, identifier, endpoint, password, config_dir)
+                # print("CLUSTER ADD " + command)
+                # stream = os.popen(command) 
+                # output = stream.read()
+                # print(output)
+                # if "successfully stored" in output:                            
+                #     command = "%s service list  -c %s --config %s " % (oscar_cli, identifier, config_dir)
+                #     print("SERVICE LIST: " + command)
+                #     stream = os.popen(command)
+                #     output = stream.read()
+                #     print(output)
+                #     if "There are no services in the cluster" not in output:
+                #         command = "%s service remove %s -c %s --config %s" % (oscar_cli, component, identifier, config_dir)
+                #         print("SERVICE REMOVE: " + command)
+                #         stream = os.popen(command)
+                #         output = stream.read()
+                #         print(output)
+                #     command = "%s cluster default -s %s --config %s " % (oscar_cli, identifier, config_dir)
+                #     print("CLUSTER DEFAULT: " + command)
+                #     stream = os.popen(command)
+                #     output = stream.read()
+                #     print(output)
+                #     if "as default successfully" in output:
+                #         command = "%s apply %s/fdl-%s.yaml --config %s" % (oscar_cli, new_dir, component_name, config_dir)
+                #         print("APPLY: " + command)
+                #         stream = os.popen(command)
+                #         output = stream.read()
+                #         if "Applying file" in output:
+                #             print(output)
+                #             command = "%s service list  -c %s --config %s " % (oscar_cli, identifier, config_dir)
+                #             print("SERVICE LIST: " + command)
+                #             stream = os.popen(command)
+                #             output = stream.read()
+                #             print(output)
+                #             print(component_name)
+                #             if component_name in output:
+                #                 print("The FDL of %s has been apply correctly" % component_name)
+                #                 print("DONE Update of cluster images in the infrastructures")
+                #                 print("--------------------------------------------------------------")
+                #         else:   
+                #             print(output)
+                #             print("ERROR applying the FDL")      
+                #     else:
+                #         print("ERROR setting default cluster")
+
     else:
         print("It is not found oscar-cli path")
     

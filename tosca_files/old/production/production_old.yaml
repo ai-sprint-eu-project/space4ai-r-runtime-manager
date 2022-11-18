@@ -321,7 +321,7 @@ System:
               - path: blurry-faces-onnx/output
                 storage_provider: minio
               - path: blurry-faces-onnx/output
-                storage_provider: minio.oscar-cluster-u8g95rv1
+                storage_provider: minio.oscar-cluster-9q15lefj
               script: /opt/blurry-faces-onnx/script.sh
               storage_providers:
                 minio:

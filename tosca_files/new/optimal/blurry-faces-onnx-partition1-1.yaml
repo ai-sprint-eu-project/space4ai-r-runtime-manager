@@ -1,17 +1,17 @@
-# CASE C - TOSCA BLURRY FACES TEMPLATE
+# CASE A - TOSCA BLURRY FACES PARTITION 1 TEMPLATE
 description: Template for launching an OSCAR Virtual Cluster
 imports:
 - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
 topology_template:
   inputs:
     admin_token:
-      default: b5l9dpkvz2fdf7om
+      default: jmpner0r3x4nqmky
       type: string
     cert_user_email:
       default: jhondoe@server.com
       type: string
     cluster_name:
-      default: oscar-cluster-e0bj3sde
+      default: oscar-cluster-it4fsld7
       type: string
     domain_name:
       default: aisprint-cefriel.link
@@ -26,10 +26,10 @@ topology_template:
       default: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
       type: string
     minio_password:
-      default: ug5msyhqbmhv97ui
+      default: n1hmmrp2c7534ct8
       type: string
     oscar_password:
-      default: jk3dvreccyzp1lia
+      default: 4igp3zf465v2vae9
       type: string
     storage_size:
       default: 100 GB
@@ -206,33 +206,57 @@ topology_template:
       requirements:
       - host: lrms_front_end
       type: tosca.nodes.indigo.OSCAR
-    oscar_service_blurry-faces-onnx:
+    oscar_service_blurry-faces-onnx-partition1-1:
       properties:
         cpu: 0.9
         env_variables:
-          COMPONENT_NAME: blurry-faces-onnx
-          KCI: https://minio.oscar-cluster-e0bj3sde.aisprint-cefriel.link
-          MONIT_HOST: ai-sprint-blurry-faces-onnx-app-telegraf
+          COMPONENT_NAME: blurry-faces-onnx-partition1-1
+          KCI: https://minio.oscar-cluster-it4fsld7.aisprint-cefriel.link
+          MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-1-app-telegraf
           MONIT_PORT: '8094'
-        image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_base_amd64:latest
+        image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_1_amd64:latest
         input:
-        - path: blurry-faces-onnx/input
+        - path: blurry-faces-onnx-partition1-1/input
           storage_provider: minio
         memory: 2048Mi
-        name: blurry-faces-onnx
+        name: blurry-faces-onnx-partition1-1
         output:
-        - path: blurry-faces-onnx/output
+        - path: blurry-faces-onnx-partition1-1/output
           storage_provider: minio
-        - path: blurry-faces-onnx/output
-          storage_provider: minio.oscar-cluster-kdhxmmg5
-        script: /opt/blurry-faces-onnx/script.sh
+        script: /opt/blurry-faces-onnx-partition1-1/script.sh
+      requirements:
+      - host: oscar
+      - dependency: dns_reg
+      type: tosca.nodes.aisprint.FaaS.Function
+    oscar_service_blurry-faces-onnx-partition1-2:
+      properties:
+        cpu: 0.9
+        env_variables:
+          COMPONENT_NAME: blurry-faces-onnx-partition1-2
+          KCI: https://minio.oscar-cluster-it4fsld7.aisprint-cefriel.link
+          MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-2-app-telegraf
+          MONIT_PORT: '8094'
+        image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_2_amd64:latest
+        input:
+        - path: blurry-faces-onnx-partition1-2/input
+          storage_provider: minio
+        - path: blurry-faces-onnx-partition1-1/output
+          storage_provider: minio
+        memory: 2048Mi
+        name: blurry-faces-onnx-partition1-2
+        output:
+        - path: blurry-faces-onnx-partition1-2/output
+          storage_provider: minio
+        - path: blurry-faces-onnx-partition1-2/output
+          storage_provider: minio.oscar-cluster-yyqrf4ga
+        script: /opt/blurry-faces-onnx-partition1-2/script.sh
         storage_providers:
           minio:
-            oscar-cluster-kdhxmmg5:
+            oscar-cluster-yyqrf4ga:
               access_key: minio
-              endpoint: https://minio.oscar-cluster-kdhxmmg5.aisprint-cefriel.link
+              endpoint: https://minio.oscar-cluster-yyqrf4ga.aisprint-cefriel.link
               region: us-east-1
-              secret_key: fxnl0ivuummxwtyw
+              secret_key: 7xp5r47mnh7218r3
       requirements:
       - host: oscar
       - dependency: dns_reg
@@ -329,12 +353,12 @@ topology_template:
     oscar_service_cred:
       value:
         get_attribute:
-        - oscar_service_blurry-faces-onnx
+        - oscar_service_blurry-faces-onnx-partition1-2
         - credential
     oscar_service_url:
       value:
         get_attribute:
-        - oscar_service_blurry-faces-onnx
+        - oscar_service_blurry-faces-onnx-partition1-2
         - endpoint
     oscarui_endpoint:
       value:

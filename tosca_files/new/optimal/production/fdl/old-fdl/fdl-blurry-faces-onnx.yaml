@@ -19,13 +19,13 @@ functions:
       output:
       - path: blurry-faces-onnx/output
         storage_provider: minio
-      # - path: blurry-faces-onnx/output
-      #   storage_provider: minio.oscar-cluster-9q15lefj
+      - path: blurry-faces-onnx/output
+        storage_provider: minio.oscar-cluster-9q15lefj
       script: /home/bedoya/cefriel/AISprint-test/api_python/test-with-tosca/ai-sprint-design/app_demo/aisprint/designs/blurry-faces-onnx/base/script.sh
-# storage_providers:
-#   minio:
-#     oscar-cluster-9q15lefj:
-#       access_key: minio
-#       endpoint: https://minio.oscar-cluster-9q15lefj.aisprint-cefriel.link
-#       region: us-east-1
-#       secret_key: 4dgq6zk5uqgqdty7
+storage_providers:
+  minio:
+    oscar-cluster-9q15lefj:
+      access_key: minio
+      endpoint: https://minio.oscar-cluster-9q15lefj.aisprint-cefriel.link
+      region: us-east-1
+      secret_key: a1awhmxxb79383j0

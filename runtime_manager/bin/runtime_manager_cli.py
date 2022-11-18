@@ -108,8 +108,6 @@ def difference(application_dir, old_dir, new_dir):
         print( "increase the number of clusters")
         components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
         machines_same = infrastructures_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])
-        
-        
         if components_same == 2 and machines_same == 2:
             #Case A
             print("We are at case A")
@@ -127,8 +125,11 @@ def difference(application_dir, old_dir, new_dir):
             config = {"oscar": {}}
             with open("%s/config.yaml" % (config_dir), 'w+') as f:
                     yaml.safe_dump(config, f, indent=2) 
-            for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
-                oscar_cli(new_dir, fdls, components_tosca_old)
+            # for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
+            components_tosca_old = 0
+            # print(fdls)
+            oscar_cli(new_dir, fdls, components_tosca_old, case)
+                # break
 
         elif components_same == 2 and machines_same == 3:
             #Case B
