@@ -97,9 +97,10 @@ def difference(application_dir, old_dir, new_dir):
             config_dir = "%s/production/fdl" % (new_dir)
             config = {"oscar": {}}
             with open("%s/config.yaml" % (config_dir), 'w+') as f:
-                    yaml.safe_dump(config, f, indent=2) 
-            for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
-                oscar_cli(new_dir, fdls, components_tosca_old, case)
+                    yaml.safe_dump(config, f, indent=2)
+            # for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
+            #     oscar_cli(new_dir, fdls, components_tosca_old, case)
+            oscar_cli(new_dir, fdls, case)
         elif components_same == 3  and machines_same == 1:
             # Case D
             print("We are in case D")
@@ -125,12 +126,7 @@ def difference(application_dir, old_dir, new_dir):
             config = {"oscar": {}}
             with open("%s/config.yaml" % (config_dir), 'w+') as f:
                     yaml.safe_dump(config, f, indent=2) 
-            # for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
-            components_tosca_old = 0
-            # print(fdls)
-            oscar_cli(new_dir, fdls, components_tosca_old, case)
-                # break
-
+            oscar_cli(new_dir, fdls, case)
         elif components_same == 2 and machines_same == 3:
             #Case B
             print("We are at case B")
