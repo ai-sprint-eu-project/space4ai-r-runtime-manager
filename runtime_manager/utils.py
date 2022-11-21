@@ -110,7 +110,7 @@ def component_name_verification(dic_old, dic_new):
         components_same = 3
         print("All the components are different")
     else:
-        components_same = False
+        components_same = 0
         print("Not all the components have the same name")
     return components_same
 

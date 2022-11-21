@@ -1,16 +1,17 @@
+# CASE F - TOSCA MASK DETECTOR TEMPLATE
 description: Template for launching an OSCAR Virtual Cluster
 imports:
 - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
 topology_template:
   inputs:
     admin_token:
-      default: fsffkx8y9i2yay56
+      default: yjlqobomdb1joe0k
       type: string
     cert_user_email:
       default: jhondoe@server.com
       type: string
     cluster_name:
-      default: oscar-cluster-u8g95rv1
+      default: oscar-cluster-oi94spxq
       type: string
     domain_name:
       default: aisprint-cefriel.link
@@ -25,10 +26,10 @@ topology_template:
       default: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
       type: string
     minio_password:
-      default: 4dgq6zk5uqgqdty7
+      default: rljwm6ur0o9t1a5k
       type: string
     oscar_password:
-      default: 9u6b9uxugvsqinsv
+      default: 2n481lnod20shx8j
       type: string
     storage_size:
       default: 100 GB
@@ -210,7 +211,7 @@ topology_template:
         cpu: 0.9
         env_variables:
           COMPONENT_NAME: blurry-faces-onnx-partition1-1
-          KCI: https://minio.oscar-cluster-u8g95rv1.aisprint-cefriel.link
+          KCI: https://minio.oscar-cluster-oi94spxq.aisprint-cefriel.link
           MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-1-app-telegraf
           MONIT_PORT: '8094'
         image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_1_amd64:latest
@@ -224,7 +225,7 @@ topology_template:
         output:
         - path: blurry-faces-onnx-partition1-1/output
           storage_provider: minio
-        script: /home/bedoya/cefriel/AISprint-test/api_python/test-with-tosca/ai-sprint-design/app_demo/aisprint/designs/blurry-faces-onnx-partition1-1/base/script.sh
+        script: /opt/blurry-faces-onnx-partition1-1/script.sh
       requirements:
       - host: oscar
       - dependency: dns_reg
@@ -234,7 +235,7 @@ topology_template:
         cpu: 0.9
         env_variables:
           COMPONENT_NAME: blurry-faces-onnx-partition1-2
-          KCI: https://minio.oscar-cluster-u8g95rv1.aisprint-cefriel.link
+          KCI: https://minio.oscar-cluster-oi94spxq.aisprint-cefriel.link
           MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-2-app-telegraf
           MONIT_PORT: '8094'
         image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_2_amd64:latest
@@ -250,7 +251,7 @@ topology_template:
         output:
         - path: blurry-faces-onnx-partition1-2/output
           storage_provider: minio
-        script: /home/bedoya/cefriel/AISprint-test/api_python/test-with-tosca/ai-sprint-design/app_demo/aisprint/designs/blurry-faces-onnx-partition1-2/base/script.sh
+        script: /opt/blurry-faces-onnx-partition1-2/script.sh
       requirements:
       - host: oscar
       - dependency: dns_reg
@@ -260,7 +261,7 @@ topology_template:
         cpu: 0.9
         env_variables:
           COMPONENT_NAME: mask-detector
-          KCI: https://minio.oscar-cluster-u8g95rv1.aisprint-cefriel.link
+          KCI: https://minio.oscar-cluster-oi94spxq.aisprint-cefriel.link
           MONIT_HOST: ai-sprint-mask-detector-app-telegraf
           MONIT_PORT: '8094'
         image: registry.gitlab.polimi.it/ai-sprint/toscarizer/mask-detector_base_amd64:latest
@@ -276,7 +277,7 @@ topology_template:
         output:
         - path: mask-detector/output
           storage_provider: minio
-        script: /home/bedoya/cefriel/AISprint-test/api_python/test-with-tosca/ai-sprint-design/app_demo/aisprint/designs/mask-detector/base/script.sh
+        script: /opt/mask-detector/script.sh
       requirements:
       - host: oscar
       - dependency: dns_reg

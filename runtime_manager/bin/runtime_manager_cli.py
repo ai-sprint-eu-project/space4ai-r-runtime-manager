@@ -155,6 +155,8 @@ def difference(application_dir, old_dir, new_dir):
             with open("%s/config.yaml" % (config_dir), 'w+') as f:
                     yaml.safe_dump(config, f, indent=2) 
             oscar_cli(new_dir, fdls, case)
+        elif components_same == 2 and machines_same == 2:
+            print("We are at case F")
     else:
         print( "decrease the number of clusters")
     #Save the the production
