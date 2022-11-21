@@ -69,7 +69,7 @@ def mix_toscas(correct_name, toscas_old, tosca_new, application_dir, case):
                 }
             }
         tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["script"] = "%s/aisprint/designs/%s/base/script.sh" % (application_dir, tosca_new["component_name"])
-    elif case == "A":
+    elif case == "A" or case == "D":
         tosca_new["topology_template"]["inputs"] = copy.deepcopy(toscas_old[correct_name]["topology_template"]["inputs"])
         oscar_service_old = toscas_old[correct_name]["topology_template"]["outputs"]["oscar_service_url"]["value"]["get_attribute"][0] 
         oscar_service_new = tosca_new["topology_template"]["outputs"]["oscar_service_url"]["value"]["get_attribute"][0] 
@@ -133,7 +133,7 @@ def infrastructures_verification(dic_old, dic_new):
     elif count_machines == len(dic_new):
         # It is part of case A
         machines_same = 2
-        print("All the infrastructures in production_new are defined in pproduction_old")
+        print("All the infrastructures in production_new are defined in production_old")
     elif count_machines == 0:
         machines_same = 0
         print("All the infrastructures are different")
@@ -242,7 +242,7 @@ def oscar_cli(new_dir, fdls, case):
     stream = os.popen(oscar_cli)
     output = stream.read()
     if "/bin/sh" not in stream.read():
-        if case == "A" or case == "C":
+        if case == "A" or case == "C" or case == "D":
             for fdl in fdls["functions"]["oscar"]:
                 identifier = list(fdl.keys())[0]
                 value = list(fdl.values())[0]

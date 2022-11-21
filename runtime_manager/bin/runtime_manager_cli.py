@@ -94,8 +94,8 @@ def difference(application_dir, old_dir, new_dir):
                     yaml.safe_dump(config, f, indent=2)
             oscar_cli(new_dir, fdls, case)
         elif components_same == 3  and machines_same == 1:
-            # Case D
-            print("We are in case D")
+            # Case E
+            print("We are in case E")
     elif len(production_old_dic["System"]["Components"]) < len(production_new_dic["System"]["Components"]):
         print( "increase the number of clusters")
         components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
@@ -119,11 +119,27 @@ def difference(application_dir, old_dir, new_dir):
                     yaml.safe_dump(config, f, indent=2) 
             oscar_cli(new_dir, fdls, case)
 
-
-
         elif components_same == 2 and machines_same == 3:
             #Case B
             print("We are at case B")
+        elif components_same == 3 and machines_same == 2:
+            #Case D
+            print("We are at case D")
+            case = "D"
+            for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
+                for components_new, values_new in production_new_dic["System"]["Components"].items():
+                    if values_tosca_old["infid"] == values_new["infid"]:
+                        tosca_new = production_new_dic["System"]["toscas"][values_new["name"]]
+                        correct_name = values_tosca_old["component_name"]
+                        production_new_dic["System"]["toscas"][values_new["name"]] = mix_toscas(correct_name, production_old_dic["System"]["toscas"], tosca_new, application_dir, case)
+            print("DONE place partitioning of one component on the same infrastructure")
+            fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
+            # This part can be converted in a function
+            config_dir = "%s/production/fdl" % (new_dir)
+            config = {"oscar": {}}
+            with open("%s/config.yaml" % (config_dir), 'w+') as f:
+                    yaml.safe_dump(config, f, indent=2) 
+            oscar_cli(new_dir, fdls, case)
     else:
         print( "decrease the number of clusters")
     #Save the the production

@@ -1,4 +1,5 @@
+#CASO D - TEMPLATE
 System:
   name: ai-sprint_mask_detection_app
-  components: ['blurry-faces-onnx-2', 'mask-detector-2'] 
-  dependencies: [['blurry-faces-onnx-2', 'mask-detector-2', 1]] 
+  components: ['blurry-faces-onnx-partition1-1', 'blurry-faces-onnx-partition1-2', 'mask-detector-2'] 
+  dependencies: [['blurry-faces-onnx-partition1-1', 'blurry-faces-onnx-partition1-2', 1], ['blurry-faces-onnx-partition1-2', 'mask-detector-2', 1]] 

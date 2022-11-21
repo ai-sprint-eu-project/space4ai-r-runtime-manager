@@ -13,4 +13,4 @@ oscar:
     ssl_verify: true
     memory: 256Mi
     log_level: INFO
-default: oscar-cluster-9q15lefj
+default: oscar-cluster-u8g95rv1

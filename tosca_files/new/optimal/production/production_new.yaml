@@ -41,7 +41,7 @@ System:
           trustedExecution: false
       executionLayer: 2
       infid: 2aaa347e-665a-11ed-bd11-4653ee2e5e57
-      name: mask-detector
+      name: mask-detector-2
   NetworkDomains:
     ND1:
       AccessDelay: 2.77e-06
@@ -324,6 +324,8 @@ System:
                 MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-1-app-telegraf
                 MONIT_PORT: '8094'
               image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_1_amd64:latest
+              image_pull_secrets:
+              - gitlabpolimi
               input:
               - path: blurry-faces-onnx-partition1-1/input
                 storage_provider: minio
@@ -346,6 +348,8 @@ System:
                 MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-2-app-telegraf
                 MONIT_PORT: '8094'
               image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_2_amd64:latest
+              image_pull_secrets:
+              - gitlabpolimi
               input:
               - path: blurry-faces-onnx-partition1-2/input
                 storage_provider: minio
@@ -699,6 +703,8 @@ System:
                 MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-1-app-telegraf
                 MONIT_PORT: '8094'
               image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_1_amd64:latest
+              image_pull_secrets:
+              - gitlabpolimi
               input:
               - path: blurry-faces-onnx-partition1-1/input
                 storage_provider: minio
@@ -721,6 +727,8 @@ System:
                 MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-2-app-telegraf
                 MONIT_PORT: '8094'
               image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_2_amd64:latest
+              image_pull_secrets:
+              - gitlabpolimi
               input:
               - path: blurry-faces-onnx-partition1-2/input
                 storage_provider: minio
@@ -857,7 +865,7 @@ System:
                 - domain_name
               - /
       tosca_definitions_version: tosca_simple_yaml_1_0
-    mask-detector:
+    mask-detector-2:
       description: Template for launching an OSCAR Virtual Cluster
       imports:
       - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
@@ -1065,26 +1073,28 @@ System:
             requirements:
             - host: lrms_front_end
             type: tosca.nodes.indigo.OSCAR
-          oscar_service_mask-detector:
+          oscar_service_mask-detector-2:
             properties:
               cpu: 0.9
               env_variables:
-                COMPONENT_NAME: mask-detector
+                COMPONENT_NAME: mask-detector-2
                 KCI: https://minio.oscar-cluster-9q15lefj.aisprint-cefriel.link
-                MONIT_HOST: ai-sprint-mask-detector-app-telegraf
+                MONIT_HOST: ai-sprint-mask-detector-2-app-telegraf
                 MONIT_PORT: '8094'
               image: registry.gitlab.polimi.it/ai-sprint/toscarizer/mask-detector_base_amd64:latest
+              image_pull_secrets:
+              - gitlabpolimi
               input:
-              - path: mask-detector/input
+              - path: mask-detector-2/input
                 storage_provider: minio
               - path: blurry-faces-onnx-partition1-2/output
                 storage_provider: minio
               memory: 4096Mi
-              name: mask-detector
+              name: mask-detector-2
               output:
-              - path: mask-detector/output
+              - path: mask-detector-2/output
                 storage_provider: minio
-              script: /home/bedoya/cefriel/AISprint-test/api_python/test-with-tosca/ai-sprint-design/app_demo/aisprint/designs/mask-detector/base/script.sh
+              script: /home/bedoya/cefriel/AISprint-test/api_python/test-with-tosca/ai-sprint-design/app_demo/aisprint/designs/mask-detector-2/base/script.sh
             requirements:
             - host: oscar
             - dependency: dns_reg
@@ -1181,12 +1191,12 @@ System:
           oscar_service_cred:
             value:
               get_attribute:
-              - oscar_service_mask-detector
+              - oscar_service_mask-detector-2
               - credential
           oscar_service_url:
             value:
               get_attribute:
-              - oscar_service_mask-detector
+              - oscar_service_mask-detector-2
               - endpoint
           oscarui_endpoint:
             value:

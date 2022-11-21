@@ -1,17 +1,17 @@
-# CASE D - TOSCA BLURRY FACES PARTITION 1 TEMPLATE
+# CASE D - TOSCA MASK DETECTOR 2
 description: Template for launching an OSCAR Virtual Cluster
 imports:
 - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
 topology_template:
   inputs:
     admin_token:
-      default: s3a2o5sp95l4hd6d
+      default: rzogbg1biui72ssw
       type: string
     cert_user_email:
       default: jhondoe@server.com
       type: string
     cluster_name:
-      default: oscar-cluster-cb6d0o48
+      default: oscar-cluster-rjr7k7cf
       type: string
     domain_name:
       default: aisprint-cefriel.link
@@ -26,10 +26,10 @@ topology_template:
       default: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
       type: string
     minio_password:
-      default: 3bnddv1kwul9j4nh
+      default: r8fjwamukhx9uaiz
       type: string
     oscar_password:
-      default: 77lp0ee0b10p1vm0
+      default: 6z1k9o9i58gwsx4z
       type: string
     storage_size:
       default: 100 GB
@@ -206,61 +206,28 @@ topology_template:
       requirements:
       - host: lrms_front_end
       type: tosca.nodes.indigo.OSCAR
-    oscar_service_blurry-faces-onnx-partition1-1:
+    oscar_service_mask-detector-2:
       properties:
         cpu: 0.9
         env_variables:
-          COMPONENT_NAME: blurry-faces-onnx-partition1-1
-          KCI: https://minio.oscar-cluster-cb6d0o48.aisprint-cefriel.link
-          MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-1-app-telegraf
+          COMPONENT_NAME: mask-detector-2
+          KCI: https://minio.oscar-cluster-rjr7k7cf.aisprint-cefriel.link
+          MONIT_HOST: ai-sprint-mask-detector-2-app-telegraf
           MONIT_PORT: '8094'
-        image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_1_amd64:latest
+        image: registry.gitlab.polimi.it/ai-sprint/toscarizer/mask-detector_base_amd64:latest
         image_pull_secrets:
         - gitlabpolimi
         input:
-        - path: blurry-faces-onnx-partition1-1/input
-          storage_provider: minio
-        memory: 2048Mi
-        name: blurry-faces-onnx-partition1-1
-        output:
-        - path: blurry-faces-onnx-partition1-1/output
-          storage_provider: minio
-        script: /opt/blurry-faces-onnx-partition1-1/script.sh
-      requirements:
-      - host: oscar
-      - dependency: dns_reg
-      type: tosca.nodes.aisprint.FaaS.Function
-    oscar_service_blurry-faces-onnx-partition1-2:
-      properties:
-        cpu: 0.9
-        env_variables:
-          COMPONENT_NAME: blurry-faces-onnx-partition1-2
-          KCI: https://minio.oscar-cluster-cb6d0o48.aisprint-cefriel.link
-          MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-2-app-telegraf
-          MONIT_PORT: '8094'
-        image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_2_amd64:latest
-        image_pull_secrets:
-        - gitlabpolimi
-        input:
-        - path: blurry-faces-onnx-partition1-2/input
-          storage_provider: minio
-        - path: blurry-faces-onnx-partition1-1/output
-          storage_provider: minio
-        memory: 2048Mi
-        name: blurry-faces-onnx-partition1-2
-        output:
-        - path: blurry-faces-onnx-partition1-2/output
+        - path: mask-detector-2/input
           storage_provider: minio
         - path: blurry-faces-onnx-partition1-2/output
-          storage_provider: minio.oscar-cluster-rjr7k7cf
-        script: /opt/blurry-faces-onnx-partition1-2/script.sh
-        storage_providers:
-          minio:
-            oscar-cluster-rjr7k7cf:
-              access_key: minio
-              endpoint: https://minio.oscar-cluster-rjr7k7cf.aisprint-cefriel.link
-              region: us-east-1
-              secret_key: r8fjwamukhx9uaiz
+          storage_provider: minio
+        memory: 4096Mi
+        name: mask-detector-2
+        output:
+        - path: mask-detector-2/output
+          storage_provider: minio
+        script: /opt/mask-detector-2/script.sh
       requirements:
       - host: oscar
       - dependency: dns_reg
@@ -357,12 +324,12 @@ topology_template:
     oscar_service_cred:
       value:
         get_attribute:
-        - oscar_service_blurry-faces-onnx-partition1-2
+        - oscar_service_mask-detector-2
         - credential
     oscar_service_url:
       value:
         get_attribute:
-        - oscar_service_blurry-faces-onnx-partition1-2
+        - oscar_service_mask-detector-2
         - endpoint
     oscarui_endpoint:
       value:
