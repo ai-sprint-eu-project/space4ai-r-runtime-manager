@@ -9,6 +9,25 @@ git clone https://gitlab.cefriel.it/ai-sprint/runtime-manager.git
 cd runtime-manager/runtime-manager/bin
 ```
 
+#### Install Go
+Follow the instructions on [go web page](https://go.dev/doc/install) for the respective computer's operating system.
+
+#### Install Oscar-cli
+To install oscar client tool it is necessary to execute:
+```sh
+go install github.com/grycap/oscar-cli@latest
+```
+and run 
+```sh
+oscar-cli --help
+```
+to verify if it has been installed correctly. For more information see the [documentation](https://docs.oscar.grycap.net/oscar-cli/) 
+
+#### Install minio-cli
+
+follow the steps explained on [minio web page](https://min.io/docs/minio/linux/reference/minio-mc.html#) 
+
+
 ### Step2: Try --help
 
 ```sh
