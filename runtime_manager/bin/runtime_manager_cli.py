@@ -166,6 +166,7 @@ def difference(application_dir, old_dir, new_dir):
         elif components_same == 2 and machines_same == 3:
             #Case B
             print("We are at case B")
+            case = "B"
 
             ####################
             # UPDATE FDLs/TOSCAs
@@ -220,7 +221,7 @@ def difference(application_dir, old_dir, new_dir):
                 print("\n")
 
             print("=====> SAVING FDLs/TOSCAs <=====")
-            safe_toscas_fdl(new_dir, filedictionary["System"]["toscas"])
+            save_toscas_fdl(new_dir, filedictionary["System"]["toscas"], case)
 
             ####################
             # APPLY FDLs/TOSCAs

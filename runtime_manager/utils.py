@@ -408,11 +408,15 @@ def save_toscas_fdl(new_dir, toscas, case):
         else:
             clusters.append(generated[0])
         done.append(identifier)
+        if not os.path.isdir("%s/production/ready-case%s/" % (new_dir, case)):
+            os.makedirs("%s/production/ready-case%s/" % (new_dir, case))
         with open("%s/production/ready-case%s/%s-ready.yaml" % (new_dir, case, name), 'w+') as f:
             yaml.safe_dump(tosca, f, indent=2)
         # with open("%s/production/fdl/fdl-%s.yaml" % (new_dir, name), 'w+') as f:
         #     yaml.safe_dump(fdl, f, indent=2)
     fdls["functions"]["oscar"] = clusters
+    if not os.path.isdir("%s/production/fdl/" % new_dir):
+            os.makedirs("%s/production/fdl/" % new_dir)
     with open("%s/production/fdl/fdl-new.yaml" % (new_dir), 'w+') as f:
         yaml.safe_dump(fdls, f, indent=2)
     print("DONE new TOSCA and FDL saved")
