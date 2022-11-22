@@ -17,6 +17,7 @@ import yaml
 # from deepdiff import DeepDiff
 import json
 import glob
+import os
 
 sys.path.append("../")
 from im_interface import  *
@@ -46,22 +47,47 @@ def infras(application_dir, dir_to_save):
 
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
-@click.option("--old_dir", help="Path to read the old toscas", default=None, required = True)
+@click.option("--old_dir", help="Path to read the old toscas", default=None)
 @click.option("--new_dir", help="Path to read the new toscas", default=None)
 def difference(application_dir, old_dir, new_dir):
+    if None == old_dir:
+        old_dir = application_dir+"/aisprint/deployments/base/im"
+
+    if None == new_dir:
+        new_dir = application_dir+"/aisprint/deployments/optimal_deployment/im"
+
     # Processing production files
     production_old_dic = yaml_as_dict("%s/aisprint/deployments/base/production_deployment.yaml" % (application_dir))
     production_new_dic = yaml_as_dict("%s/aisprint/deployments/optimal_deployment/production_deployment.yaml" % (application_dir))
-    files = glob.glob("%s/*.yaml" % old_dir)
+
+    # Creation completed old/new-production dictionaries and relate them with their respective InfID
+    # We append to the old/ne dictionaries the key "toscas" that includes the old/new components
+
+    # Parse old toscas.
+    files = list(set(glob.glob("%s/*.yaml" % old_dir)) - set(glob.glob("%s/infras.yaml" % old_dir)))
     production_old_dic["System"]["toscas"] = {}
-    #Creation completed old/new-production dictionaries and relate them with their respective InfID
     for one_file in files:
         tosca_old_dic = yaml_as_dict(one_file)
+        if not("component_name") in tosca_old_dic.keys():
+            input_ext = os.path.splitext(os.path.basename(one_file))[0]
+            tosca_old_dic["component_name"] = input_ext
+        if not("infid") in tosca_old_dic.keys():
+            infraId = getInfraId(tosca_old_dic["component_name"], old_dir)
+            tosca_old_dic["infid"] = infraId
+        print("============================================")
+        print("Deployed component:      %s" % tosca_old_dic["component_name"])
+        print("Deployed infrastructure: %s" % tosca_old_dic["infid"])
+        print("Deployed cluster:        %s" % tosca_old_dic["topology_template"]["inputs"]["cluster_name"]["default"])
+        print("Execution layer:         %s" % production_old_dic["System"]["Components"][tosca_old_dic["component_name"]]['executionLayer'] )
+        print("Resources:               %s" % getSelectedResources(tosca_old_dic["component_name"], production_old_dic))
+        print("============================================\n")
         production_old_dic["System"]["toscas"][tosca_old_dic["component_name"]] = tosca_old_dic
         #ADD a component that overwrite the component "component1" for "component_name(blurryfaces or mask-detector)"
         if tosca_old_dic["component_name"] in production_old_dic["System"]["Components"]:
             production_old_dic["System"]["Components"][tosca_old_dic["component_name"]]["infid"] = tosca_old_dic["infid"]
-    files = glob.glob("%s/*.yaml" % new_dir)
+    
+    #files = glob.glob("%s/*.yaml" % new_dir)
+    files = list(set(glob.glob("%s/*.yaml" % new_dir)) - set(glob.glob("%s/infras.yaml" % new_dir)))
     production_new_dic["System"]["toscas"] = {}
     for one_file in files:
         name_component = one_file.split("/")[-1].split(".")[0]
@@ -70,7 +96,10 @@ def difference(application_dir, old_dir, new_dir):
         tosca_new_dic["component_name"] = name_component
         # print(tosca_new_dic["component_name"])
         production_new_dic["System"]["toscas"][name_component] = tosca_new_dic
+
     # Make a verification of the case
+
+    # Check if the number of the components are the same
     if len(production_old_dic["System"]["Components"]) == len(production_new_dic["System"]["Components"]):
         print("the number of clusters are the same")
         components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
@@ -137,6 +166,83 @@ def difference(application_dir, old_dir, new_dir):
         elif components_same == 2 and machines_same == 3:
             #Case B
             print("We are at case B")
+
+            ####################
+            # UPDATE FDLs/TOSCAs
+            ####################
+            filedata = json.dumps(production_new_dic)
+            filedictionary = json.loads(filedata)
+
+            for component_new, values_new in production_new_dic["System"]["Components"].items():
+                tosca_new = production_new_dic["System"]["toscas"][values_new["name"]]
+
+                print("-----------------------")
+                print("--> %s" % component_new)
+                se = searchExecution(production_old_dic, production_new_dic, component_new)
+                if (se):
+                    tosca_old = production_old_dic["System"]["toscas"][se]
+                    #print((" >Component new runs on SAME CLUSTER than OLD"))
+                    nc = tosca_new["topology_template"]["inputs"]["cluster_name"]["default"]
+                    oc = tosca_old["topology_template"]["inputs"]["cluster_name"]["default"]
+                    print(" >NEW CLUSTER: %s " % (nc))
+                    print(" >OLD CLUSTER: %s (%s)" % (oc, se))
+                    # ACTION: EXCHANGE CLUSTER
+                    filedata = filedata.replace(nc, oc)
+                    filedictionary = json.loads(filedata)
+                    
+                    # ACTION: EXCHANGE PASSWORDS
+                    at_old = production_old_dic["System"]["toscas"][se]["topology_template"]["inputs"]["admin_token"]["default"]
+                    op_old = production_old_dic["System"]["toscas"][se]["topology_template"]["inputs"]["oscar_password"]["default"]
+                    mp_old = production_old_dic["System"]["toscas"][se]["topology_template"]["inputs"]["minio_password"]["default"]
+
+                    at_new = filedictionary["System"]["toscas"][component_new]["topology_template"]["inputs"]["admin_token"]["default"]
+                    op_new = filedictionary["System"]["toscas"][component_new]["topology_template"]["inputs"]["oscar_password"]["default"]
+                    mp_new = filedictionary["System"]["toscas"][component_new]["topology_template"]["inputs"]["minio_password"]["default"]
+
+                    filedata = filedata.replace(at_new, at_old)
+                    filedata = filedata.replace(op_new, op_old)
+                    filedata = filedata.replace(mp_new, mp_old)
+                    filedictionary = json.loads(filedata)
+
+                else:
+                    #print((" >Component new runs on DIFFERENT CLUSTER than OLD"))
+                    print(" >NEW CLUSTER: %s" % (tosca_new["topology_template"]["inputs"]["cluster_name"]["default"]))
+
+                # ACTION: REPLACE SCRIPT
+                old_script = filedictionary["System"]["toscas"][component_new]["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["script"]
+                new_script = application_dir+"/aisprint/designs/"+ component_new + "/base/script.sh"
+                filedata = filedata.replace(old_script, new_script)
+                filedictionary = json.loads(filedata)
+
+                print(" >SCRIPT: %s" % (filedictionary["System"]["toscas"][component_new]["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["script"]))
+
+                print("-----------------------")
+                print("\n")
+
+            print("=====> SAVING FDLs/TOSCAs <=====")
+            safe_toscas_fdl(new_dir, filedictionary["System"]["toscas"])
+
+            ####################
+            # APPLY FDLs/TOSCAs
+            ####################
+
+            print("=====> REMOVE DELETED COMPONENTS <=====")
+            cleanDeletedComponent(filedictionary, production_old_dic)
+            print("\n")
+
+            print("=====> CLEAN COMPONENTS <=====")
+            rootCluster = searchNextComponent(filedictionary, "")
+            while("" != rootCluster):
+                cleanComponentDeployment(filedictionary, rootCluster, production_old_dic)
+                rootCluster = searchNextComponent(filedictionary, rootCluster)
+            print("\n")
+
+            print("=====> UPDATE COMPONENTS <=====")
+            leafCluster = searchPreviousComponent(filedictionary, "")
+            while("" != leafCluster):
+                updateComponentDeployment(filedictionary, leafCluster, production_old_dic)
+                leafCluster = searchPreviousComponent(filedictionary, leafCluster)
+            print("\n")
         elif components_same == 3 and machines_same == 2:
             #Case D
             print("We are at case D")
@@ -159,6 +265,12 @@ def difference(application_dir, old_dir, new_dir):
             print("We are at case F")
     else:
         print( "decrease the number of clusters")
+    
+    #Save the the production
+    if not os.path.isdir("%s/production/" % old_dir):
+        os.makedirs("%s/production/" % old_dir)
+    if not os.path.isdir("%s/production/" % new_dir):
+        os.makedirs("%s/production/" % new_dir)
     #Save the the production
     with open("%s/production/production_old.yaml" % old_dir, 'w+') as f:
             yaml.safe_dump(production_old_dic, f, indent=2)

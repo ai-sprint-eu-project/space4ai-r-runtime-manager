@@ -31,6 +31,190 @@ def yaml_as_dict(my_file):
                 my_dict[key] = value
     return my_dict
 
+def getInfraId(component, dir):
+    infraFile = "%s/infras.yaml" % dir
+    infrasDict = yaml_as_dict(infraFile)
+    infraId = ""
+    found = False
+    for k, v in infrasDict.items():
+        #print(k, v)
+        if (k==component):
+            found = True
+            #print("component: ", k)
+            #print("infra: ", infrasDict[k][0])
+            #print("status: ", infrasDict[k][1])
+            infraId = infrasDict[k][0].rsplit('/', 1)[-1]
+            #print("id: ", infraId)
+            break
+    if (False==found):
+        print("No such component (%s) found in infras.dat", component)
+    return infraId
+
+def getSelectedResources(component, dic):
+    res = []
+    for item, values in dic["System"]["Components"][component]["Containers"].items():
+        #print(">>>", values['selectedExecutionResources'])
+        res.append(values['selectedExecutionResources'])
+    return res
+
+def getResourcesType(component, dic):
+    returnValue = ""
+    el = dic["System"]["Components"][component]['executionLayer'] 
+    for item, values in dic["System"]["NetworkDomains"].items():
+        for item2, values2 in values["ComputationalLayers"].items():
+            if (el == values2['number']):
+                returnValue = values2['type']
+    return returnValue
+
+def compareExecution(old_dic, new_dic, component):
+    returnValue = False
+
+    oldExec = old_dic["System"]["Components"][component]['executionLayer']
+    newExec = new_dic["System"]["Components"][component]['executionLayer']
+
+    oldResources = getSelectedResources(component, old_dic)
+    newResources = getSelectedResources(component, new_dic)
+
+    # print("Execution layer old:         %s" % oldExec)
+    # print("Resources old:               %s" % oldResources)
+
+    # print("Execution layer new:         %s" % newExec )
+    # print("Resources new:               %s" % newResources)
+
+    if (oldExec == newExec and set(oldResources) == set(newResources)):
+        returnValue = True
+    
+    return returnValue
+
+def searchExecution(old_dic, new_dic, component):
+    returnValue = ""
+
+    newExec = new_dic["System"]["Components"][component]['executionLayer']
+    newResources = getSelectedResources(component, new_dic)
+
+    for item, values in old_dic["System"]["toscas"].items():
+        oldExec = old_dic["System"]["Components"][item]['executionLayer']
+        oldResources = getSelectedResources(item, old_dic)
+        if (oldExec == newExec and set(oldResources) == set(newResources)):
+            # returnValue = True
+            # print(" MATCHED >>>> ", oldExec, oldResources)
+            returnValue = item
+            break
+
+    return returnValue
+
+def searchLeaf(dic):
+    returnValue = ""
+    for component_new, values_new in dic["System"]["toscas"].items():
+        clu = values_new["topology_template"]["inputs"]["cluster_name"]["default"]
+        #print(" >>>%s" % (component_new))
+        leaf = True
+        for k in values_new["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["output"]:
+            # print(" >OUTPUT %s" % (k["storage_provider"]))
+            if ("minio" != k["storage_provider"]):
+                leaf = False
+                break
+            #else:
+                #print("    >OUTPUT %s" % "minio")
+        if (True == leaf):
+            returnValue = component_new
+            break
+    return returnValue
+
+def searchPreviousComponent(dic, component):
+    returnValue = ""
+    if ("" == component):
+        returnValue = searchLeaf(dic)
+    else:
+        root = False
+        clu = dic["System"]["toscas"][component]["topology_template"]["inputs"]["cluster_name"]["default"]
+        for component_new, values_new in dic["System"]["toscas"].items():
+            for k in values_new["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["output"]:
+                # print(" >OUTPUT %s" % (k["storage_provider"]))
+                if ("minio" != k["storage_provider"]):
+                    cluOut = k["storage_provider"].split(".")[1]
+                    if (cluOut == clu):
+                        root = True
+                    break
+            if (True == root):
+                returnValue = component_new
+                break
+    return returnValue
+
+def searchNextComponent(dic, component):
+    returnValue = ""
+    if ("" == component):
+        returnValue = searchRoot(dic)
+    else:
+        for k in dic["System"]["toscas"][component]["topology_template"]["node_templates"]["oscar_service_"+component]["properties"]["output"]:
+            if ("minio" != k["storage_provider"]):
+                clu = k["storage_provider"].split(".")[1]
+
+                for component_new, values_new in dic["System"]["toscas"].items():
+                    clu_new = values_new["topology_template"]["inputs"]["cluster_name"]["default"]
+                    if (clu_new == clu):
+                        returnValue = component_new
+                        break
+            if ("" != returnValue):
+                break
+    return returnValue
+
+def searchRoot(dic):
+    returnValue = ""
+    for component_new, values_new in dic["System"]["toscas"].items():
+        clu = values_new["topology_template"]["inputs"]["cluster_name"]["default"]
+        root = True
+        for component_new2, values_new2 in dic["System"]["toscas"].items():
+
+            for k in values_new2["topology_template"]["node_templates"]["oscar_service_"+component_new2]["properties"]["output"]:
+                if ("minio" != k["storage_provider"]):
+                    cluOut = k["storage_provider"].split(".")[1]
+                    if (cluOut == clu):
+                        root = False
+                        break
+
+            if (False == root):
+                break
+        if (True == root):
+            returnValue = component_new
+            break
+    return returnValue
+
+def updateComponentDeployment(dic, component, production_old_dic):
+    rt = getResourcesType(component, dic)
+    se = searchExecution(production_old_dic, dic, component)
+    print("Updating deployment of component --> %s (%s)" % (component, rt))
+    if ("Virtual" == rt):
+        if ("" == (se)):
+            print("Creating infrastructure ...")
+        else:
+            print("Virtual resource action ...")
+    else:
+        print("Phisical resource action ...")
+
+def cleanComponentDeployment(dic, component, production_old_dic):
+    rt = getResourcesType(component, dic)
+    se = searchExecution(production_old_dic, dic, component)
+    print("Cleaning deployment of component --> %s (%s)" % (component, rt))
+    if ("Virtual" == rt):
+        if ("" == (se)):
+            print("New infrastructure ynothing to clean!")
+        else:
+            print("Virtual resource clean ...")
+    else:
+        print("Phisical resource clean ...")
+
+def cleanDeletedComponent(dic_new, dic_old):
+    for component_old, values_old in dic_old["System"]["Components"].items():
+        deletedComponent = True
+        for component_new, values_new in dic_new["System"]["Components"].items():
+                if (component_new == component_old):
+                    deletedComponent = False
+                    break
+        if (True == deletedComponent):
+            print("Deleting removed component %s ..." %(component_old))
+
+
 def dic_creation(dic):
     dic_new = {}
     i = 0
