@@ -3,6 +3,7 @@ import yaml
 import copy
 import sys
 from minio import Minio
+import im_interface
 
 im_auth_path_def = "/im/auth.dat"
 im_url_def = "https://appsgrycap.i3m.upv.es:31443/im"
@@ -180,13 +181,15 @@ def searchRoot(dic):
             break
     return returnValue
 
-def updateComponentDeployment(dic, component, production_old_dic):
+def updateComponentDeployment(dic, component, production_old_dic, new_dir, case):
     rt = getResourcesType(component, dic)
     se = searchExecution(production_old_dic, dic, component)
     print("Updating deployment of component --> %s (%s)" % (component, rt))
     if ("Virtual" == rt):
         if ("" == (se)):
             print("Creating infrastructure ...")
+
+            # im_interface.im_post_infrastructures(new_dir+"/.."+im_auth_path_def, "%s/production/ready-case%s/%s-ready.yaml" % (new_dir, case, component))
         else:
             print("Virtual resource action ...")
     else:
@@ -198,7 +201,7 @@ def cleanComponentDeployment(dic, component, production_old_dic):
     print("Cleaning deployment of component --> %s (%s)" % (component, rt))
     if ("Virtual" == rt):
         if ("" == (se)):
-            print("New infrastructure ynothing to clean!")
+            print("New infrastructure nothing to clean!")
         else:
             print("Virtual resource clean ...")
     else:
