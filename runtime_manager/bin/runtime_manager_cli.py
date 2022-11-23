@@ -64,6 +64,7 @@ def difference(application_dir, old_dir, new_dir):
     # We append to the old/ne dictionaries the key "toscas" that includes the old/new components
 
     # Parse old toscas.
+    # files = glob.glob("%s/*.yaml" % old_dir)
     files = list(set(glob.glob("%s/*.yaml" % old_dir)) - set(glob.glob("%s/infras.yaml" % old_dir)))
     production_old_dic["System"]["toscas"] = {}
     for one_file in files:
@@ -86,7 +87,7 @@ def difference(application_dir, old_dir, new_dir):
         if tosca_old_dic["component_name"] in production_old_dic["System"]["Components"]:
             production_old_dic["System"]["Components"][tosca_old_dic["component_name"]]["infid"] = tosca_old_dic["infid"]
     
-    #files = glob.glob("%s/*.yaml" % new_dir)
+    # files = glob.glob("%s/*.yaml" % new_dir)
     files = list(set(glob.glob("%s/*.yaml" % new_dir)) - set(glob.glob("%s/infras.yaml" % new_dir)))
     production_new_dic["System"]["toscas"] = {}
     for one_file in files:
