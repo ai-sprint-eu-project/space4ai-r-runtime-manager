@@ -205,15 +205,15 @@ def difference(application_dir, old_dir, new_dir):
                     filedata = filedata.replace(mp_new, mp_old)
                     filedictionary = json.loads(filedata)
 
-                    # ACTION: REPLACE SCRIPTs
-                    old_script = filedictionary["System"]["toscas"][component_new]["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["script"]
-                    new_script = application_dir+"/aisprint/designs/"+ component_new + "/base/script.sh"
-                    filedata = filedata.replace(old_script, new_script)
-                    filedictionary = json.loads(filedata)
-
                 else:
                     #print((" >Component new runs on DIFFERENT CLUSTER than OLD"))
                     print(" >NEW CLUSTER: %s" % (tosca_new["topology_template"]["inputs"]["cluster_name"]["default"]))
+
+                # ACTION: REPLACE SCRIPTs
+                old_script = filedictionary["System"]["toscas"][component_new]["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["script"]
+                new_script = application_dir+"/aisprint/designs/"+ component_new + "/base/script.sh"
+                filedata = filedata.replace(old_script, new_script)
+                filedictionary = json.loads(filedata)
 
                 print(" >SCRIPT: %s" % (filedictionary["System"]["toscas"][component_new]["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["script"]))
 
@@ -225,7 +225,7 @@ def difference(application_dir, old_dir, new_dir):
             ##################
 
             print("=====> SAVING FDLs/TOSCAs <=====")
-            save_toscas_fdl(new_dir, filedictionary["System"]["toscas"], case)
+            fdls = save_toscas_fdl(new_dir, filedictionary["System"]["toscas"], case)
 
             ###################
             # APPLY FDLs/TOSCAs
@@ -236,18 +236,23 @@ def difference(application_dir, old_dir, new_dir):
             print("\n")
 
             print("=====> CLEAN COMPONENTS <=====")
+            # We do clean up starting from root component (entry point)
             rootCluster = searchNextComponent(filedictionary, "")
             while("" != rootCluster):
                 cleanComponentDeployment(filedictionary, rootCluster, production_old_dic)
                 rootCluster = searchNextComponent(filedictionary, rootCluster)
             print("\n")
 
-            print("=====> UPDATE COMPONENTS <=====")
+            print("=====> UPDATE DEPLOYMENTS <=====")
+            # We do update components starting from leaf component (exit point).
             leafCluster = searchPreviousComponent(filedictionary, "")
             while("" != leafCluster):
                 updateComponentDeployment(filedictionary, leafCluster, production_old_dic, new_dir, case)
                 leafCluster = searchPreviousComponent(filedictionary, leafCluster)
             print("\n")
+
+            print("=====> UPDATE COMPONENTS <=====")
+            oscar_cli(new_dir, fdls, case)
 
         elif components_same == 3 and machines_same == 2:
             #Case D

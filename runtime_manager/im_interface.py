@@ -43,10 +43,11 @@ def im_post_infrastructures(im_auth_path_def, tosca):
 
     with open(tosca, 'rb') as f:
         data = f.read()
+        #print(data)
     try:
         resp = requests.request("POST", "%s/infrastructures" % im_url_def, headers = headers, data = data)
         print(resp.text)
-        return resp.text.split("\n")
+        success = resp.status_code == 200
+        return success, resp.text
     except Exception as ex:
-        print(str(ex))
         return False, str(ex)

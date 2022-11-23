@@ -4,6 +4,7 @@ import copy
 import sys
 from minio import Minio
 import im_interface
+import time
 
 im_auth_path_def = "/im/auth.dat"
 im_url_def = "https://appsgrycap.i3m.upv.es:31443/im"
@@ -181,6 +182,44 @@ def searchRoot(dic):
             break
     return returnValue
 
+def deployTosca(comp, new_dir, case, delay=10, max_time=30):
+
+    components_deployed = {}
+    end = False
+    cont = 0
+    while not end and cont < max_time:
+        if comp not in components_deployed:
+                    success = False
+                    num = 1
+                    max_count = 3
+                    wait_time = 10
+                    while not success and num < (max_count+1):
+                        success, inf_id = im_interface.im_post_infrastructures(new_dir+"/.."+im_auth_path_def, "%s/production/ready-case%s/%s-ready.yaml" % (new_dir, case, comp))
+                        if not success:
+                            if (num + 1) < (max_count+1):
+                                print("Error launching deployment for component %s. Waiting (%ssec) to retry (%s/%s)." % (comp, wait_time, num, max_count-1))
+                                time.sleep(wait_time)
+                            else:
+                                print("Deploy of component %s FAILED!" % (comp))
+                                end = True
+                        num += 1
+                        state = 'pending' if success else 'failed'
+                        components_deployed[comp] = (inf_id, state)
+        else:
+            # Update deployment state
+            inf_id, state = components_deployed[comp]
+            if state in ['pending', 'running']:
+                pass
+                # success, state = get_state(inf_id, auth_data, verify)
+                # if success:
+                #     components_deployed[comp] = inf_id, state
+                #     end = True
+        if not end:
+            time.sleep(delay)
+            cont += delay
+
+    return components_deployed
+
 def updateComponentDeployment(dic, component, production_old_dic, new_dir, case):
     rt = getResourcesType(component, dic)
     se = searchExecution(production_old_dic, dic, component)
@@ -188,10 +227,11 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, case)
     if ("Virtual" == rt):
         if ("" == (se)):
             print("Creating infrastructure ...")
-
-            # im_interface.im_post_infrastructures(new_dir+"/.."+im_auth_path_def, "%s/production/ready-case%s/%s-ready.yaml" % (new_dir, case, component))
+            #deployTosca(component, new_dir, case)
+            #im_interface.im_post_infrastructures(new_dir+"/.."+im_auth_path_def, "%s/production/ready-case%s/%s-ready.yaml" % (new_dir, case, component))
         else:
             print("Virtual resource action ...")
+            #oscar_cli(new_dir, dic["System"]["toscas"][component], case)
     else:
         print("Phisical resource action ...")
 
@@ -429,7 +469,14 @@ def save_toscas_fdl(new_dir, toscas, case):
 def oscar_cli(new_dir, fdls, case):
     oscar_cli = "~/go/bin/oscar-cli"
     new_dir = "%s/production/fdl" % (new_dir)
+    if not os.path.isdir(new_dir):
+        os.makedirs(new_dir)
     config_dir = "%s/config.yaml" % (new_dir)
+    if (os.path.exists(config_dir) == False):
+        f = open(config_dir, "w")
+    config = {"oscar": {}}
+    with open(config_dir, 'w+') as f:
+        yaml.safe_dump(config, f, indent=2) 
     stream = os.popen(oscar_cli)
     output = stream.read()
     if "/bin/sh" not in stream.read():
@@ -474,6 +521,52 @@ def oscar_cli(new_dir, fdls, case):
             print(output)
             if "Applying file" in output:
                 print("FDL is being applied")
+        elif case == "B":
+            for fdl in fdls["functions"]["oscar"]:
+                identifier = list(fdl.keys())[0]
+                print("********************")
+                print("%s" % (identifier))
+                print("********************")
+                value = list(fdl.values())[0]
+                endpoint = "https://%s.%s" % (identifier,  value["inputs"]["domain_name"]["default"])
+                password = value["inputs"]["oscar_password"]["default"]
+                endpoint_minio = "https://minio.%s.%s" % (identifier,  value["inputs"]["domain_name"]["default"])
+                access_key_minio = "minio"
+                secret_key_minio = value["inputs"]["minio_password"]["default"]
+                # example oscar-cli  cluster add oscar-cluster-f5vr5dfn https://oscar-cluster-f5vr5dfn.aisprint-cefriel.link oscar 05gwt0zjc88m4udt 
+                command = "%s cluster add  %s %s oscar %s --config %s" % (oscar_cli, identifier, endpoint, password, config_dir)
+                print("CLUSTER ADD: %s" % command)
+                stream = os.popen(command) 
+                output = stream.read()
+                print(output)
+                if "successfully stored" in output:
+                    command = "%s service list  -c %s --config %s " % (oscar_cli, identifier, config_dir)
+                    print("SERVICE LIST: %s" % command)
+                    print("\n")
+                    stream = os.popen(command)
+                    output = stream.read()
+                    print(output)
+                    if "There are no services in the cluster" not in output:
+                        output_split = output.split("\n")
+                        for line in output_split:
+                            if "NAME" not in line and line != "":
+                                service_old = line.split("\t")[0]
+                                command = "%s service remove %s -c %s --config %s" % (oscar_cli, service_old, identifier, config_dir)
+                                print("SERVICE REMOVE: %s" % command)
+                                print("\n")
+                                stream = os.popen(command)
+                                output = stream.read()
+                                print(output)
+                                minio_cli(endpoint_minio, access_key_minio, secret_key_minio, service_old, "DELETE")
+            command = "%s apply %s/fdl-new.yaml --config %s" % (oscar_cli, new_dir, config_dir)
+            print("APPLY: " + command)
+            print("\n")
+            stream = os.popen(command)
+            output = stream.read()
+            print(output)
+            if "Applying file" in output:
+                print("FDL is being applied")
+
     else:
         print("It is not found oscar-cli path")
     
