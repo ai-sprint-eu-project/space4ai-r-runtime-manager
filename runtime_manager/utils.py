@@ -616,6 +616,9 @@ def minio_cli(endpoint, access_key, secret_key, service_old, action):
                     print(output)
 
 def iteration_toscas(dic_old, dic_new, application_dir, case):
+    # This two line are for the simplified version
+    # component_name_verification(dic_old["System"]["Components"],dic_new["System"]["Components"])    
+    # infrastructures_verification(dic_old["System"]["Components"],dic_new["System"]["Components"])
     for components_tosca_old, values_tosca_old in dic_old["System"]["toscas"].items():
         for components_new, values_new in dic_new["System"]["Components"].items():
             if values_tosca_old["infid"] == values_new["infid"]:

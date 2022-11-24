@@ -103,6 +103,16 @@ def difference(application_dir, old_dir, new_dir):
             yaml.safe_dump(config, f, indent=2)
 
     # Make a verification of the case
+    # --------------------------------------------
+    # Simplified Version
+    # case = "D"
+    # # component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
+    # # infrastructures_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])
+    # production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
+    # print("DONE exchange the infrastructures of each cluster")
+    # fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
+    # oscar_cli(new_dir, fdls, case)
+    # ------------------------------------------------
 
     # Check if the number of the components are the same
     if len(production_old_dic["System"]["Components"]) == len(production_new_dic["System"]["Components"]):
@@ -238,8 +248,6 @@ def difference(application_dir, old_dir, new_dir):
             fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
             # This part can be converted in a function 
             oscar_cli(new_dir, fdls, case)
-        elif components_same == 2 and machines_same == 2:
-            print("We are at case F")
     else:
         print( "decrease the number of clusters")
     
