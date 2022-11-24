@@ -51,3 +51,17 @@ def im_post_infrastructures(im_auth_path_def, tosca):
         return success, resp.text
     except Exception as ex:
         return False, str(ex)
+
+def im_get_state(inf_id, im_auth_path_def):
+    auth_data = read_auth(im_auth_path_def)
+    headers = {"Authorization": auth_data}
+    headers["Content-Type"] = "application/json"
+    try:
+        resp = requests.request("GET", "%s/state" % inf_id, headers=headers)
+        success = resp.status_code == 200
+        if success:
+            return success, resp.json()["state"]["state"]
+        else:
+            return success, resp.text
+    except Exception as ex:
+        return False, str(ex)

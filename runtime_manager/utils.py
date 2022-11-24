@@ -297,7 +297,6 @@ def searchNextCluster(fdls, cluster):
     return returnValue
 
 def deployTosca(comp, new_dir, case, delay=10, max_time=30):
-
     components_deployed = {}
     end = False
     cont = 0
@@ -324,10 +323,10 @@ def deployTosca(comp, new_dir, case, delay=10, max_time=30):
             inf_id, state = components_deployed[comp]
             if state in ['pending', 'running']:
                 pass
-                # success, state = get_state(inf_id, auth_data, verify)
-                # if success:
-                #     components_deployed[comp] = inf_id, state
-                #     end = True
+                success, state = im_interface.im_get_state(inf_id, new_dir+"/.."+im_auth_path_def)
+                if success:
+                    components_deployed[comp] = inf_id, state
+                    end = True
         if not end:
             time.sleep(delay)
             cont += delay
@@ -341,8 +340,13 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, case)
     if ("Virtual" == rt):
         if ("" == (se)):
             print("Creating infrastructure ...")
-            #deployTosca(component, new_dir, case)
-            #im_interface.im_post_infrastructures(new_dir+"/.."+im_auth_path_def, "%s/production/ready-case%s/%s-ready.yaml" % (new_dir, case, component))
+            res = deployTosca(component, new_dir, case)
+
+            print(yaml.safe_dump(res, indent=2))
+
+            # im_infras = "%s/infras.yaml" % tosca_dir
+            # with open(im_infras, 'w+') as f:
+            #     yaml.safe_dump(res, f, indent=2)
         else:
             print("Virtual resource action ...")
             #oscar_cli(new_dir, dic["System"]["toscas"][component], case)
@@ -675,7 +679,7 @@ def oscar_cli(new_dir, fdls, case):
                                 print(output)
                                 minio_cli(endpoint_minio, access_key_minio, secret_key_minio, service_old, "DELETE")
                 nextFdl = searchNextFdl(fdls, nextFdl)
-                
+
             command = "%s apply %s/fdl-new.yaml --config %s" % (oscar_cli, new_dir, config_dir)
             print("APPLY: " + command)
             print("\n")
