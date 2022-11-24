@@ -1,17 +1,17 @@
-# CASE F - TOSCA BLURRY FACES PARTITION 2 TEMPLATE
+# CASE A - TOSCA BLURRY FACES PARTITION 2 TEMPLATE
 description: Template for launching an OSCAR Virtual Cluster
 imports:
 - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
 topology_template:
   inputs:
     admin_token:
-      default: yjlqobomdb1joe0k
+      default: jmpner0r3x4nqmky
       type: string
     cert_user_email:
       default: jhondoe@server.com
       type: string
     cluster_name:
-      default: oscar-cluster-oi94spxq
+      default: oscar-cluster-it4fsld7
       type: string
     domain_name:
       default: aisprint-cefriel.link
@@ -26,10 +26,10 @@ topology_template:
       default: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
       type: string
     minio_password:
-      default: rljwm6ur0o9t1a5k
+      default: n1hmmrp2c7534ct8
       type: string
     oscar_password:
-      default: 2n481lnod20shx8j
+      default: 4igp3zf465v2vae9
       type: string
     storage_size:
       default: 100 GB
@@ -211,12 +211,10 @@ topology_template:
         cpu: 0.9
         env_variables:
           COMPONENT_NAME: blurry-faces-onnx-partition1-1
-          KCI: https://minio.oscar-cluster-oi94spxq.aisprint-cefriel.link
+          KCI: https://minio.oscar-cluster-it4fsld7.aisprint-cefriel.link
           MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-1-app-telegraf
           MONIT_PORT: '8094'
         image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_1_amd64:latest
-        image_pull_secrets:
-        - gitlabpolimi
         input:
         - path: blurry-faces-onnx-partition1-1/input
           storage_provider: minio
@@ -235,12 +233,10 @@ topology_template:
         cpu: 0.9
         env_variables:
           COMPONENT_NAME: blurry-faces-onnx-partition1-2
-          KCI: https://minio.oscar-cluster-oi94spxq.aisprint-cefriel.link
+          KCI: https://minio.oscar-cluster-it4fsld7.aisprint-cefriel.link
           MONIT_HOST: ai-sprint-blurry-faces-onnx-partition1-2-app-telegraf
           MONIT_PORT: '8094'
         image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_partition1_2_amd64:latest
-        image_pull_secrets:
-        - gitlabpolimi
         input:
         - path: blurry-faces-onnx-partition1-2/input
           storage_provider: minio
@@ -251,33 +247,16 @@ topology_template:
         output:
         - path: blurry-faces-onnx-partition1-2/output
           storage_provider: minio
-        script: /opt/blurry-faces-onnx-partition1-2/script.sh
-      requirements:
-      - host: oscar
-      - dependency: dns_reg
-      type: tosca.nodes.aisprint.FaaS.Function
-    oscar_service_mask-detector:
-      properties:
-        cpu: 0.9
-        env_variables:
-          COMPONENT_NAME: mask-detector
-          KCI: https://minio.oscar-cluster-oi94spxq.aisprint-cefriel.link
-          MONIT_HOST: ai-sprint-mask-detector-app-telegraf
-          MONIT_PORT: '8094'
-        image: registry.gitlab.polimi.it/ai-sprint/toscarizer/mask-detector_base_amd64:latest
-        image_pull_secrets:
-        - gitlabpolimi
-        input:
-        - path: mask-detector/input
-          storage_provider: minio
         - path: blurry-faces-onnx-partition1-2/output
-          storage_provider: minio
-        memory: 4096Mi
-        name: mask-detector
-        output:
-        - path: mask-detector/output
-          storage_provider: minio
-        script: /opt/mask-detector/script.sh
+          storage_provider: minio.oscar-cluster-yyqrf4ga
+        script: /opt/blurry-faces-onnx-partition1-2/script.sh
+        storage_providers:
+          minio:
+            oscar-cluster-yyqrf4ga:
+              access_key: minio
+              endpoint: https://minio.oscar-cluster-yyqrf4ga.aisprint-cefriel.link
+              region: us-east-1
+              secret_key: 7xp5r47mnh7218r3
       requirements:
       - host: oscar
       - dependency: dns_reg
@@ -374,12 +353,12 @@ topology_template:
     oscar_service_cred:
       value:
         get_attribute:
-        - oscar_service_mask-detector
+        - oscar_service_blurry-faces-onnx-partition1-2
         - credential
     oscar_service_url:
       value:
         get_attribute:
-        - oscar_service_mask-detector
+        - oscar_service_blurry-faces-onnx-partition1-2
         - endpoint
     oscarui_endpoint:
       value:

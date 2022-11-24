@@ -214,7 +214,7 @@ topology_template:
           KCI: https://minio.oscar-cluster-2l10py46.aisprint-cefriel.link
           MONIT_HOST: ai-sprint-blurry-faces-onnx-2-app-telegraf
           MONIT_PORT: '8094'
-        image: null
+        image: registry.gitlab.polimi.it/ai-sprint/toscarizer/blurry-faces-onnx_base_amd64:latest
         image_pull_secrets:
         - gitlabpolimi
         input:

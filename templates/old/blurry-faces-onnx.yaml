@@ -1,3 +1,4 @@
+#OLD - TEMPLATE
 component_name: blurry-faces-onnx
 description: Template for launching an OSCAR Virtual Cluster
 imports:
