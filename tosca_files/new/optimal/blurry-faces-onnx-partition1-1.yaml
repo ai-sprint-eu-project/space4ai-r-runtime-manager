@@ -115,7 +115,7 @@ topology_template:
       type: tosca.nodes.indigo.KubernetesSecretRegistry
     lrms_front_end:
       capabilities:
-        endpoint:i
+        endpoint:
           properties:
             port: 30443
             protocol: tcp

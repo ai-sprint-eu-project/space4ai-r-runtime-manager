@@ -26,7 +26,6 @@ from utils import *
 @click.group()
 def runtime_manager_cli():
     pass
-# --application_dir /home/bedoya/cefriel/AISprint-test/api_python/runtime-manager
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
 @click.option("--dir_to_save", help="Path to save the toscas requested", default=None)
