@@ -101,7 +101,8 @@ def difference(application_dir, old_dir, new_dir):
     config = {"oscar": {}}
     with open("%s/config.yaml" % (config_dir), 'w+') as f:
             yaml.safe_dump(config, f, indent=2)
-
+    # hacer update de la brancha case-b y agregar esta parte de la modificacion de la carpeta
+    
     # Make a verification of the case
     # --------------------------------------------
     # Simplified Version
