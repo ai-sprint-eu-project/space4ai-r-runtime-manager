@@ -55,11 +55,11 @@ python3 runtime_manager_cli.py infras --application_dir <APPLICATION DIR> --dir_
 This command will read the production_deployment files, make a comparison between them and make the respective actions about it. (for now only related with the services of the clusters)
 
 ```sh
-python3 runtime_manager_cli.py difference --application_dir  <APPLICATION DIR>  --old_dir <DIR TO READ THE OLD TOSCA FILES>  --new_dir <DIR TO READ THE OLD TOSCA FILES>
+python3 runtime_manager_cli.py difference --application_dir  <APPLICATION DIR>  --old_dir <OPTIONAL DIR TO READ THE OLD TOSCA FILES>  --new_dir <OPTIONAL DIR TO READ THE OLD TOSCA FILES>
 ```
 - application_dir: it is the default folder of the application
-- old_dir: directory to read the old tosca files
-- new_dir: directory to read the old tosca files
+- old_dir: directory to read the old tosca files (OPTIONAL)
+- new_dir: directory to read the old tosca files (OPTIONAL)
 
 ### Read OUTPUTS of the infrastructures
 

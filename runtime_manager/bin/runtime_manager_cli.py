@@ -101,8 +101,7 @@ def difference(application_dir, old_dir, new_dir):
     config = {"oscar": {}}
     with open("%s/config.yaml" % (config_dir), 'w+') as f:
             yaml.safe_dump(config, f, indent=2)
-    # hacer update de la brancha case-b y agregar esta parte de la modificacion de la carpeta
-    
+
     # Make a verification of the case
     # --------------------------------------------
     # Simplified Version
@@ -223,22 +222,32 @@ def difference(application_dir, old_dir, new_dir):
 
             print("=====> CLEAN COMPONENTS <=====")
             # We do clean up starting from root component (entry point)
-            rootCluster = searchNextComponent(filedictionary, "")
-            while("" != rootCluster):
-                cleanComponentDeployment(filedictionary, rootCluster, production_old_dic)
-                rootCluster = searchNextComponent(filedictionary, rootCluster)
+            rootComponent = searchNextComponent(filedictionary, "")
+            while("" != rootComponent):
+                cleanComponentDeployment(filedictionary, rootComponent, production_old_dic)
+                rootComponent = searchNextComponent(filedictionary, rootComponent)
             print("\n")
 
             print("=====> UPDATE DEPLOYMENTS <=====")
             # We do update components starting from leaf component (exit point).
-            leafCluster = searchPreviousComponent(filedictionary, "")
-            while("" != leafCluster):
-                updateComponentDeployment(filedictionary, leafCluster, production_old_dic, new_dir, case)
-                leafCluster = searchPreviousComponent(filedictionary, leafCluster)
+            # TODO: CREATE DUMMY CLUSTER (Infrastructure) with no buckets and no services
+            # In this case we do not care about creation order.
+            # TO BE CHECKED!
+            leafComponent = searchPreviousComponent(filedictionary, "")
+            while("" != leafComponent):
+                updateComponentDeployment(filedictionary, leafComponent, production_old_dic, new_dir, case)
+                leafComponent = searchPreviousComponent(filedictionary, leafComponent)
             print("\n")
 
             print("=====> UPDATE COMPONENTS <=====")
             oscar_cli(new_dir, fdls, case)
+            print("\n")
+
+
+            # nextFdl = searchNextFdl(fdls, {})
+            # while({} != nextFdl):
+            #     print(list(nextFdl.keys()).pop())
+            #     nextFdl = searchNextFdl(fdls, nextFdl)
 
         elif components_same == 3 and machines_same == 2:
             #Case D
