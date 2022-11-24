@@ -96,6 +96,11 @@ def difference(application_dir, old_dir, new_dir):
         tosca_new_dic["component_name"] = name_component
         # print(tosca_new_dic["component_name"])
         production_new_dic["System"]["toscas"][name_component] = tosca_new_dic
+    
+    config_dir = "%s/production/fdl" % (new_dir)
+    config = {"oscar": {}}
+    with open("%s/config.yaml" % (config_dir), 'w+') as f:
+            yaml.safe_dump(config, f, indent=2)
 
     # Make a verification of the case
 
@@ -109,36 +114,17 @@ def difference(application_dir, old_dir, new_dir):
             case = "C"
             print("We are in case C")
             print("Case: same machines and cluster, it is just to exchange the infrastructures between each component")
-            for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
-                for components_new, values_new in production_new_dic["System"]["Components"].items():
-                    if values_tosca_old["infid"] == values_new["infid"]:
-                        tosca_new = production_new_dic["System"]["toscas"][values_new["name"]]
-                        correct_name = values_tosca_old["component_name"] 
-                        production_new_dic["System"]["toscas"][values_new["name"]] = mix_toscas(correct_name, production_old_dic["System"]["toscas"], tosca_new, application_dir, case)
+            production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE exchange the infrastructures of each cluster")
             fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            config_dir = "%s/production/fdl" % (new_dir)
-            config = {"oscar": {}}
-            with open("%s/config.yaml" % (config_dir), 'w+') as f:
-                    yaml.safe_dump(config, f, indent=2)
             oscar_cli(new_dir, fdls, case)
         elif components_same == 3  and machines_same == 1:
             # Case E
             print("We are in case E")
             case = "E"
-            for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
-                for components_new, values_new in production_new_dic["System"]["Components"].items():
-                    if values_tosca_old["infid"] == values_new["infid"]:
-                        tosca_new = production_new_dic["System"]["toscas"][values_new["name"]]
-                        correct_name = values_tosca_old["component_name"]
-                        print(correct_name)
-                        production_new_dic["System"]["toscas"][values_new["name"]] = mix_toscas(correct_name, production_old_dic["System"]["toscas"], tosca_new, application_dir, case)
+            production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
             fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            config_dir = "%s/production/fdl" % (new_dir)
-            config = {"oscar": {}}
-            with open("%s/config.yaml" % (config_dir), 'w+') as f:
-                    yaml.safe_dump(config, f, indent=2)
             oscar_cli(new_dir, fdls, case)
     elif len(production_old_dic["System"]["Components"]) < len(production_new_dic["System"]["Components"]):
         print( "increase the number of clusters")
@@ -148,21 +134,10 @@ def difference(application_dir, old_dir, new_dir):
             #Case A
             print("We are at case A")
             case = "A"
-            for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
-                for components_new, values_new in production_new_dic["System"]["Components"].items():
-                    if values_tosca_old["infid"] == values_new["infid"]:
-                        tosca_new = production_new_dic["System"]["toscas"][values_new["name"]]
-                        correct_name = values_tosca_old["component_name"]
-                        production_new_dic["System"]["toscas"][values_new["name"]] = mix_toscas(correct_name, production_old_dic["System"]["toscas"], tosca_new, application_dir, case)
+            production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
             fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            # This part can be converted in a function
-            config_dir = "%s/production/fdl" % (new_dir)
-            config = {"oscar": {}}
-            with open("%s/config.yaml" % (config_dir), 'w+') as f:
-                    yaml.safe_dump(config, f, indent=2) 
             oscar_cli(new_dir, fdls, case)
-
         elif components_same == 2 and machines_same == 3:
             #Case B
             print("We are at case B")
@@ -258,19 +233,10 @@ def difference(application_dir, old_dir, new_dir):
             #Case D
             print("We are at case D")
             case = "D"
-            for components_tosca_old, values_tosca_old in production_old_dic["System"]["toscas"].items():
-                for components_new, values_new in production_new_dic["System"]["Components"].items():
-                    if values_tosca_old["infid"] == values_new["infid"]:
-                        tosca_new = production_new_dic["System"]["toscas"][values_new["name"]]
-                        correct_name = values_tosca_old["component_name"]
-                        production_new_dic["System"]["toscas"][values_new["name"]] = mix_toscas(correct_name, production_old_dic["System"]["toscas"], tosca_new, application_dir, case)
+            production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
             fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            # This part can be converted in a function
-            config_dir = "%s/production/fdl" % (new_dir)
-            config = {"oscar": {}}
-            with open("%s/config.yaml" % (config_dir), 'w+') as f:
-                    yaml.safe_dump(config, f, indent=2) 
+            # This part can be converted in a function 
             oscar_cli(new_dir, fdls, case)
         elif components_same == 2 and machines_same == 2:
             print("We are at case F")
@@ -288,7 +254,7 @@ def difference(application_dir, old_dir, new_dir):
     with open("%s/production/production_new.yaml" % new_dir, 'w+') as f:
             yaml.safe_dump(production_new_dic, f, indent=2)
 
-    
+
 
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)

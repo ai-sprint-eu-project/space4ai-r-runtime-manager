@@ -614,3 +614,12 @@ def minio_cli(endpoint, access_key, secret_key, service_old, action):
                     stream = os.popen(command) 
                     output = stream.read()
                     print(output)
+
+def iteration_toscas(dic_old, dic_new, application_dir, case):
+    for components_tosca_old, values_tosca_old in dic_old["System"]["toscas"].items():
+        for components_new, values_new in dic_new["System"]["Components"].items():
+            if values_tosca_old["infid"] == values_new["infid"]:
+                tosca_new = dic_new["System"]["toscas"][values_new["name"]]
+                correct_name = values_tosca_old["component_name"]
+                dic_new["System"]["toscas"][values_new["name"]] = mix_toscas(correct_name, dic_old["System"]["toscas"], tosca_new, application_dir, case)
+    return dic_new["System"]["toscas"]
