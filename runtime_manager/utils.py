@@ -182,6 +182,115 @@ def searchRoot(dic):
             break
     return returnValue
 
+def searchRootCluster(fdls):
+    returnValue = ""
+    for fdl in fdls["functions"]["oscar"]:
+            identifier = list(fdl.keys())[0]
+            value = list(fdl.values())[0]
+            root = True
+            #print(identifier)
+            for fdl2 in fdls["functions"]["oscar"]:
+                identifier2 = list(fdl2.keys())[0]
+                value2 = list(fdl2.values())[0]
+                for outputs in value2["output"]:
+                    #print(outputs["storage_provider"])
+                    if ("minio" != outputs["storage_provider"]):
+                        cluOut = outputs["storage_provider"].split(".")[1]
+                        if (cluOut == identifier):
+                            root = False
+                            break
+                if (False == root):
+                    break
+            if (True == root):
+                returnValue = identifier
+                break
+    return returnValue
+
+def searchRootFdl(fdls):
+    returnValue = {}
+    for fdl in fdls["functions"]["oscar"]:
+            identifier = list(fdl.keys())[0]
+            value = list(fdl.values())[0]
+            component = value["name"]
+            root = True
+            #print(identifier)
+            for fdl2 in fdls["functions"]["oscar"]:
+                identifier2 = list(fdl2.keys())[0]
+                value2 = list(fdl2.values())[0]
+                for outputs in value2["output"]:
+                    #print(outputs["storage_provider"])
+                    if ("minio" != outputs["storage_provider"]):
+                        cluOut = outputs["storage_provider"].split(".")[1]
+                        if (cluOut == identifier):
+                            root = False
+                            break
+                if (False == root):
+                    break
+            if (True == root):
+                returnValue = fdl
+                break
+    return returnValue
+
+def getComponentFdl(fdls, component):
+    returnValue = {}
+    for fdl in fdls["functions"]["oscar"]:
+        identifier = list(fdl.keys())[0]
+        value = list(fdl.values())[0]
+        if component == value["name"]:
+            returnValue = fdl
+            break
+    return returnValue
+
+def searchNextFdl(fdls, fdlRoot):
+    returnValue = {}
+    if ({} == fdlRoot):
+        rv = searchRootFdl(fdls)
+        returnValue = rv
+    else:
+        identifierRoot = list(fdlRoot.keys())[0]
+        valueRoot = list(fdlRoot.values())[0]
+        componentRoot = valueRoot["name"]
+        for outputsRoot in valueRoot["output"]:
+            if ("minio" != outputsRoot["storage_provider"]):
+                    clusterRoot = outputsRoot["storage_provider"].split(".")[1]
+                    #print("xxxxx", clusterRoot)
+                    break
+
+        for fdl in fdls["functions"]["oscar"]:
+            identifier = list(fdl.keys())[0]
+            value = list(fdl.values())[0]
+            for input in value["input"]:
+                for outputsRoot in valueRoot["output"]:
+                    if outputsRoot["path"] == input["path"]:
+                        returnValue = fdl
+                        break
+            if ({} != returnValue):
+                break
+            
+    return returnValue
+
+def searchNextCluster(fdls, cluster):
+    returnValue = ""
+    if ("" == cluster):
+        returnValue = searchRootCluster(fdls)
+    else:
+        for fdl1 in fdls["functions"]["oscar"]:
+            clu = ""
+            identifier1 = list(fdl1.keys())[0]
+            value1 = list(fdl1.values())[0]
+            if (identifier1 == cluster):
+                for outputs1 in value1["output"]:
+                    if ("minio" != outputs1["storage_provider"]):
+                        clu = outputs1["storage_provider"].split(".")[1]
+                break
+        for fdl in fdls["functions"]["oscar"]:
+                identifier = list(fdl.keys())[0]
+                value = list(fdl.values())[0]
+                if (identifier == clu):
+                    returnValue = identifier
+                    break
+    return returnValue
+
 def deployTosca(comp, new_dir, case, delay=10, max_time=30):
 
     components_deployed = {}
@@ -522,12 +631,14 @@ def oscar_cli(new_dir, fdls, case):
             if "Applying file" in output:
                 print("FDL is being applied")
         elif case == "B":
-            for fdl in fdls["functions"]["oscar"]:
-                identifier = list(fdl.keys())[0]
+
+            nextFdl = searchNextFdl(fdls, {})
+            while({} != nextFdl):
+                identifier = list(nextFdl.keys())[0]
                 print("********************")
                 print("%s" % (identifier))
                 print("********************")
-                value = list(fdl.values())[0]
+                value = list(nextFdl.values())[0]
                 endpoint = "https://%s.%s" % (identifier,  value["inputs"]["domain_name"]["default"])
                 password = value["inputs"]["oscar_password"]["default"]
                 endpoint_minio = "https://minio.%s.%s" % (identifier,  value["inputs"]["domain_name"]["default"])
@@ -539,33 +650,34 @@ def oscar_cli(new_dir, fdls, case):
                 stream = os.popen(command) 
                 output = stream.read()
                 print(output)
-                if "successfully stored" in output:
-                    command = "%s service list  -c %s --config %s " % (oscar_cli, identifier, config_dir)
-                    print("SERVICE LIST: %s" % command)
-                    print("\n")
-                    stream = os.popen(command)
-                    output = stream.read()
-                    print(output)
-                    if "There are no services in the cluster" not in output:
-                        output_split = output.split("\n")
-                        for line in output_split:
-                            if "NAME" not in line and line != "":
-                                service_old = line.split("\t")[0]
-                                command = "%s service remove %s -c %s --config %s" % (oscar_cli, service_old, identifier, config_dir)
-                                print("SERVICE REMOVE: %s" % command)
-                                print("\n")
-                                stream = os.popen(command)
-                                output = stream.read()
-                                print(output)
-                                minio_cli(endpoint_minio, access_key_minio, secret_key_minio, service_old, "DELETE")
-            command = "%s apply %s/fdl-new.yaml --config %s" % (oscar_cli, new_dir, config_dir)
-            print("APPLY: " + command)
-            print("\n")
-            stream = os.popen(command)
-            output = stream.read()
-            print(output)
-            if "Applying file" in output:
-                print("FDL is being applied")
+            #     if "successfully stored" in output:
+            #         command = "%s service list  -c %s --config %s " % (oscar_cli, identifier, config_dir)
+            #         print("SERVICE LIST: %s" % command)
+            #         print("\n")
+            #         stream = os.popen(command)
+            #         output = stream.read()
+            #         print(output)
+            #         if "There are no services in the cluster" not in output:
+            #             output_split = output.split("\n")
+            #             for line in output_split:
+            #                 if "NAME" not in line and line != "":
+            #                     service_old = line.split("\t")[0]
+            #                     command = "%s service remove %s -c %s --config %s" % (oscar_cli, service_old, identifier, config_dir)
+            #                     print("SERVICE REMOVE: %s" % command)
+            #                     print("\n")
+            #                     stream = os.popen(command)
+            #                     output = stream.read()
+            #                     print(output)
+            #                     minio_cli(endpoint_minio, access_key_minio, secret_key_minio, service_old, "DELETE")
+                nextFdl = searchNextFdl(fdls, nextFdl)
+            # command = "%s apply %s/fdl-new.yaml --config %s" % (oscar_cli, new_dir, config_dir)
+            # print("APPLY: " + command)
+            # print("\n")
+            # stream = os.popen(command)
+            # output = stream.read()
+            # print(output)
+            # if "Applying file" in output:
+            #     print("FDL is being applied")
 
     else:
         print("It is not found oscar-cli path")
