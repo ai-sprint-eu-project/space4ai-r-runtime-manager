@@ -585,7 +585,7 @@ def save_toscas_fdl(new_dir, toscas, case):
     return fdls
 
 
-def oscar_cli(new_dir, fdls, case):
+def oscar_cli(new_dir, fdls, case, remove_bucket):
     oscar_cli = "~/go/bin/oscar-cli"
     new_dir = "%s/production/fdl" % (new_dir)
     if not os.path.isdir(new_dir):
@@ -631,7 +631,8 @@ def oscar_cli(new_dir, fdls, case):
                                 stream = os.popen(command)
                                 output = stream.read()
                                 print(output)
-                                minio_cli(endpoint_minio, access_key_minio, secret_key_minio, service_old, "DELETE")
+                                if remove_bucket:
+                                    minio_cli(endpoint_minio, access_key_minio, secret_key_minio, service_old, "DELETE")
             command = "%s apply %s/fdl-new.yaml --config %s" % (oscar_cli, new_dir, config_dir)
             print("APPLY: " + command)
             print("\n")

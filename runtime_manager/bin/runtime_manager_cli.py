@@ -48,7 +48,8 @@ def infras(application_dir, dir_to_save):
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
 @click.option("--old_dir", help="Path to read the old toscas", default=None)
 @click.option("--new_dir", help="Path to read the new toscas", default=None)
-def difference(application_dir, old_dir, new_dir):
+@click.option("--remove_bucket", is_flag = True,  help="Flag to remove buckets from minio")
+def difference(application_dir, old_dir, new_dir, remove_bucket):
     if None == old_dir:
         old_dir = application_dir+"/aisprint/deployments/base/im"
 
@@ -127,7 +128,7 @@ def difference(application_dir, old_dir, new_dir):
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE exchange the infrastructures of each cluster")
             fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            oscar_cli(new_dir, fdls, case)
+            oscar_cli(new_dir, fdls, case, remove_bucket)
         elif components_same == 3  and machines_same == 1:
             # Case E
             print("We are in case E")
@@ -135,7 +136,7 @@ def difference(application_dir, old_dir, new_dir):
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
             fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            oscar_cli(new_dir, fdls, case)
+            oscar_cli(new_dir, fdls, case, remove_bucket)
     elif len(production_old_dic["System"]["Components"]) < len(production_new_dic["System"]["Components"]):
         print( "increase the number of clusters")
         components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
@@ -147,7 +148,7 @@ def difference(application_dir, old_dir, new_dir):
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
             fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            oscar_cli(new_dir, fdls, case)
+            oscar_cli(new_dir, fdls, case, remove_bucket)
         elif components_same == 2 and machines_same == 3:
             #Case B
             print("We are at case B")
@@ -240,7 +241,7 @@ def difference(application_dir, old_dir, new_dir):
             print("\n")
 
             print("=====> UPDATE COMPONENTS <=====")
-            oscar_cli(new_dir, fdls, case)
+            oscar_cli(new_dir, fdls, case, remove_bucket)
             print("\n")
 
 
@@ -257,7 +258,7 @@ def difference(application_dir, old_dir, new_dir):
             print("DONE place partitioning of one component on the same infrastructure")
             fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
             # This part can be converted in a function 
-            oscar_cli(new_dir, fdls, case)
+            oscar_cli(new_dir, fdls, case, remove_bucket)
     else:
         print( "decrease the number of clusters")
     
