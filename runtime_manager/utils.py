@@ -396,6 +396,7 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
     if ("Virtual" == rt):
         if ("" == (se)):
             print("Creating infrastructure ...")
+            # TODO: REENABLE the deploy. It has been commented out for testing purpose.
             # res = deployTosca(component, new_dir, case)
             # print(yaml.safe_dump(res, indent=2))
         else:
@@ -404,9 +405,19 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
                 print("Same execution: Virtual resource action ...")
             else:
                 print(diff)
-                print("Same execution with changed flavour: Updating infrastructure ...")
-                #res = updateTosca(component, se, new_dir, old_dir, case)
-                #print(yaml.safe_dump(res, indent=2))
+                value = list(list(diff.values())[0].values())[0]
+                nv = value['new_value']
+                print("Same execution with changed flavour: Updating infrastructure %s..." % getInfraId(se, old_dir))
+                # tosca_old_dic = yaml_as_dict(old_dir+"/"+se+".yaml")
+                # tosca_old_dic['topology_template']['node_templates']['wn_resource1']['capabilities']['scalable']['properties']['count']= nv -1
+                # print("xxx", tosca_old_dic['topology_template']['node_templates']['wn_resource1']['capabilities']['scalable']['properties']['count'])
+                # print("---")
+                # with open(old_dir+"/"+se+"-intermediate.yaml", 'w+') as f:
+                #     yaml.safe_dump(tosca_old_dic, f, indent=2)
+                # print("---")
+                # TODO: check waiting time for infrastructure reconfiguration!
+                # res = updateTosca(component, se, new_dir, old_dir, case)
+                # print(yaml.safe_dump(res, indent=2))
 
     else:
         print("Phisical resource action ...")
