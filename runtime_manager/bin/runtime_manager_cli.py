@@ -23,16 +23,12 @@ sys.path.append("../")
 from im_interface import  *
 from utils import *
 
-@click.group()
-def runtime_manager_cli():
-    pass
-@click.command()
-@click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
-@click.option("--dir_to_save", help="Path to save the toscas requested", default=None)
-def infras(application_dir, dir_to_save):
+def getInfras(application_dir, dir_to_save):
     auth_path = "%s/%s" % (application_dir, im_auth_path_def)
     responses = im_get_infrastructures(auth_path)
     i = 1
+    components_deployed = {}
+
     for response in responses:
         InfId = response.split("%s/infrastructures/" % im_url_def)[1]
         tosca = yaml.safe_load(im_get_tosca(InfId, auth_path))
@@ -42,7 +38,24 @@ def infras(application_dir, dir_to_save):
         with open(tosca_path, 'w+') as f:
             yaml.safe_dump(tosca, f, indent=2)
         print("DONE. TOSCA files %s has been saved for the InfId %s" % (tosca["component_name"] + "-" + str(i) + ".yaml", InfId))
+        success, state = im_get_state(response, auth_path)
+        if success:
+            components_deployed[tosca["component_name"]] = (response, state)
+        else:
+            components_deployed[tosca["component_name"]] = (response, "unknown")
         i += 1
+    im_infras = "%s/im/infras.yaml" % application_dir
+    with open(im_infras, 'w+') as f:
+            yaml.safe_dump(components_deployed, f, indent=2)
+
+@click.group()
+def runtime_manager_cli():
+    pass
+@click.command()
+@click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
+@click.option("--dir_to_save", help="Path to save the toscas requested", default=None)
+def infras(application_dir, dir_to_save):
+    getInfras(application_dir, dir_to_save)
 
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
@@ -54,6 +67,8 @@ def difference(application_dir, old_dir, new_dir):
 
     if None == new_dir:
         new_dir = application_dir+"/aisprint/deployments/optimal_deployment/im"
+
+    #getInfras(old_dir+"/..", application_dir+"/tmp")
 
     # Processing production files
     production_old_dic = yaml_as_dict("%s/aisprint/deployments/base/production_deployment.yaml" % (application_dir))
@@ -235,7 +250,7 @@ def difference(application_dir, old_dir, new_dir):
             # TO BE CHECKED!
             leafComponent = searchPreviousComponent(filedictionary, "")
             while("" != leafComponent):
-                updateComponentDeployment(filedictionary, leafComponent, production_old_dic, new_dir, case)
+                updateComponentDeployment(filedictionary, leafComponent, production_old_dic, new_dir, old_dir, case)
                 leafComponent = searchPreviousComponent(filedictionary, leafComponent)
             print("\n")
 

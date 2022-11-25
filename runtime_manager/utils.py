@@ -5,6 +5,7 @@ import sys
 from minio import Minio
 import im_interface
 import time
+from deepdiff import DeepDiff
 
 im_auth_path_def = "/im/auth.dat"
 im_url_def = "https://appsgrycap.i3m.upv.es:31443/im"
@@ -68,25 +69,36 @@ def getResourcesType(component, dic):
                 returnValue = values2['type']
     return returnValue
 
-def compareExecution(old_dic, new_dic, component):
+def getExecution(component, dic):
+    returnValue = {}
+    exec = dic["System"]["Components"][component]['executionLayer']
+    for item, values in dic["System"]["NetworkDomains"].items():
+        for item2, values2 in values["ComputationalLayers"].items():
+            if (exec == values2['number']):
+                returnValue[item2] = values2
+    return returnValue
+
+def compareExecution(old_dic, new_dic, component_new, component_old):
     returnValue = False
+    returnDiff = {}
 
-    oldExec = old_dic["System"]["Components"][component]['executionLayer']
-    newExec = new_dic["System"]["Components"][component]['executionLayer']
+    oldExec = old_dic["System"]["Components"][component_old]['executionLayer']
+    newExec = new_dic["System"]["Components"][component_new]['executionLayer']
 
-    oldResources = getSelectedResources(component, old_dic)
-    newResources = getSelectedResources(component, new_dic)
+    oldResources = getSelectedResources(component_old, old_dic)
+    newResources = getSelectedResources(component_new, new_dic)
 
-    # print("Execution layer old:         %s" % oldExec)
-    # print("Resources old:               %s" % oldResources)
+    e0 = getExecution(component_new, new_dic)
+    e1 = getExecution(component_old, old_dic)
 
-    # print("Execution layer new:         %s" % newExec )
-    # print("Resources new:               %s" % newResources)
+    returnDiff = DeepDiff(e0, e1)
 
-    if (oldExec == newExec and set(oldResources) == set(newResources)):
+    # if (oldExec == newExec and set(oldResources) == set(newResources)):
+    #     returnValue = True
+    if (returnDiff == {}):
         returnValue = True
     
-    return returnValue
+    return returnValue, returnDiff
 
 def searchExecution(old_dic, new_dic, component):
     returnValue = ""
@@ -101,6 +113,7 @@ def searchExecution(old_dic, new_dic, component):
             # returnValue = True
             # print(" MATCHED >>>> ", oldExec, oldResources)
             returnValue = item
+
             break
 
     return returnValue
@@ -296,6 +309,49 @@ def searchNextCluster(fdls, cluster):
                     break
     return returnValue
 
+def updateTosca(new_comp, old_comp, new_dir, old_dir, case, delay=10, max_time=30):
+    components_deployed = {}
+    
+    infId = getInfraId(old_comp, old_dir)
+
+    print(infId)
+
+    end = False
+    cont = 0
+    while not end and cont < max_time:
+        if new_comp not in components_deployed:
+                    success = False
+                    num = 1
+                    max_count = 3
+                    wait_time = 10
+                    while not success and num < (max_count+1):
+                        success = im_interface.im_post_infrastructures_update(old_dir+"/.."+im_auth_path_def, "%s/production/ready-case%s/%s-ready.yaml" % (new_dir, case, new_comp), infId)
+                        if not success:
+                            if (num + 1) < (max_count+1):
+                                print("Error launching deployment for component %s. Waiting (%ssec) to retry (%s/%s)." % (new_comp, wait_time, num, max_count-1))
+                                time.sleep(wait_time)
+                            else:
+                                print("Deploy of component %s FAILED!" % (new_comp))
+                                end = True
+                        num += 1
+                        state = 'pending' if success else 'failed'
+                        components_deployed[new_comp] = (infId, state)
+        else:
+            # Update deployment state
+            infId, state = components_deployed[new_comp]
+            if state in ['pending', 'running']:
+                pass
+                success, state = im_interface.im_get_state(infId, old_dir+"/.."+im_auth_path_def)
+                if success:
+                    components_deployed[new_comp] = infId, state
+            else:
+                end = True
+        if not end:
+            time.sleep(delay)
+            cont += delay
+
+    return components_deployed
+
 def deployTosca(comp, new_dir, case, delay=10, max_time=30):
     components_deployed = {}
     end = False
@@ -333,23 +389,25 @@ def deployTosca(comp, new_dir, case, delay=10, max_time=30):
 
     return components_deployed
 
-def updateComponentDeployment(dic, component, production_old_dic, new_dir, case):
+def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_dir, case):
     rt = getResourcesType(component, dic)
     se = searchExecution(production_old_dic, dic, component)
     print("Updating deployment of component --> %s (%s)" % (component, rt))
     if ("Virtual" == rt):
         if ("" == (se)):
             print("Creating infrastructure ...")
-            res = deployTosca(component, new_dir, case)
-
-            print(yaml.safe_dump(res, indent=2))
-
-            # im_infras = "%s/infras.yaml" % tosca_dir
-            # with open(im_infras, 'w+') as f:
-            #     yaml.safe_dump(res, f, indent=2)
+            # res = deployTosca(component, new_dir, case)
+            # print(yaml.safe_dump(res, indent=2))
         else:
-            print("Virtual resource action ...")
-            #oscar_cli(new_dir, dic["System"]["toscas"][component], case)
+            sameExecution, diff = compareExecution(production_old_dic, dic, component, se)
+            if (True == sameExecution):
+                print("Same execution: Virtual resource action ...")
+            else:
+                print(diff)
+                print("Same execution with changed flavour: Updating infrastructure ...")
+                #res = updateTosca(component, se, new_dir, old_dir, case)
+                #print(yaml.safe_dump(res, indent=2))
+
     else:
         print("Phisical resource action ...")
 
