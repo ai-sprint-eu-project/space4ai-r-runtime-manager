@@ -1,0 +1,14 @@
+ComputationalLayers: 
+   computationalLayer1:
+      number: 1
+      Resources: 
+         resource1:
+            name: RaspPi
+            minio:
+               endpoint: https://minio.oscar-cluster-yyqrf4ga.aisprint-cefriel.link
+               access_key: minio
+               secret_key: 7xp5r47mnh7218r3
+            oscar:
+               name: oscar-test
+               password: 3u7ff3d65xywug5m
+
