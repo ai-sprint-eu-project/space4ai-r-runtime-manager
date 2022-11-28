@@ -76,6 +76,9 @@ def difference(application_dir, old_dir, new_dir, update_infras):
     production_old_dic = yaml_as_dict("%s/aisprint/deployments/base/production_deployment.yaml" % (application_dir))
     production_new_dic = yaml_as_dict("%s/aisprint/deployments/optimal_deployment/production_deployment.yaml" % (application_dir))
 
+    # Temporary production dictionary for internal use.
+    filedictionary = {}
+
     # Creation completed old/new-production dictionaries and relate them with their respective InfID
     # We append to the old/ne dictionaries the key "toscas" that includes the old/new components
 
@@ -143,16 +146,16 @@ def difference(application_dir, old_dir, new_dir, update_infras):
             print("Case: same machines and cluster, it is just to exchange the infrastructures between each component")
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE exchange the infrastructures of each cluster")
-            fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            oscar_cli(new_dir, fdls, case)
+            # fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
+            # oscar_cli(new_dir, fdls, case)
         elif components_same == 3  and machines_same == 1:
             # Case E
             print("We are in case E")
             case = "E"
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
-            fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            oscar_cli(new_dir, fdls, case)
+            # fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
+            # oscar_cli(new_dir, fdls, case)
     elif len(production_old_dic["System"]["Components"]) < len(production_new_dic["System"]["Components"]):
         print( "increase the number of clusters")
         components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
@@ -163,8 +166,8 @@ def difference(application_dir, old_dir, new_dir, update_infras):
             case = "A"
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
-            fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            oscar_cli(new_dir, fdls, case)
+            # fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
+            # oscar_cli(new_dir, fdls, case)
         elif components_same == 2 and machines_same == 3:
             #Case B
             print("We are at case B")
@@ -222,43 +225,7 @@ def difference(application_dir, old_dir, new_dir, update_infras):
                 print("-----------------------")
                 print("\n")
 
-            ##################
-            # SAVE FDLs/TOSCAs
-            ##################
-
-            print("=====> SAVING FDLs/TOSCAs <=====")
-            fdls = save_toscas_fdl(new_dir, filedictionary["System"]["toscas"], case)
-
-            ###################
-            # APPLY FDLs/TOSCAs
-            ###################
-
-            print("=====> REMOVE DELETED COMPONENTS <=====")
-            cleanDeletedComponent(filedictionary, production_old_dic)
-            print("\n")
-
-            print("=====> CLEAN COMPONENTS <=====")
-            # We do clean up starting from root component (entry point)
-            rootComponent = searchNextComponent(filedictionary, "")
-            while("" != rootComponent):
-                cleanComponentDeployment(filedictionary, rootComponent, production_old_dic)
-                rootComponent = searchNextComponent(filedictionary, rootComponent)
-            print("\n")
-
-            print("=====> UPDATE DEPLOYMENTS <=====")
-            # We do update components starting from leaf component (exit point).
-            # TODO: CREATE DUMMY CLUSTER (Infrastructure) with no buckets and no services
-            #       In this case we do not care about creation order.
-            #       TO BE CHECKED!
-            leafComponent = searchPreviousComponent(filedictionary, "")
-            while("" != leafComponent):
-                updateComponentDeployment(filedictionary, leafComponent, production_old_dic, new_dir, old_dir, case)
-                leafComponent = searchPreviousComponent(filedictionary, leafComponent)
-            print("\n")
-
-            print("=====> UPDATE COMPONENTS <=====")
-            oscar_cli(new_dir, fdls, case)
-            print("\n")
+                production_new_dic = filedictionary
 
         elif components_same == 3 and machines_same == 2:
             #Case D
@@ -266,23 +233,69 @@ def difference(application_dir, old_dir, new_dir, update_infras):
             case = "D"
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
-            fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
+            # fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
             # This part can be converted in a function 
-            oscar_cli(new_dir, fdls, case)
+            # oscar_cli(new_dir, fdls, case)
     else:
         print( "decrease the number of clusters")
+
+    ##################
+    # SAVE FDLs/TOSCAs
+    ##################
+    print("=====> SAVING FDLs/TOSCAs <=====")
+    fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
+    print("\n")
+
+    ###################
+    # REMOVE COMPONENTS
+    ###################
+    print("=====> REMOVE DELETED COMPONENTS <=====")
+    cleanDeletedComponent(production_new_dic, production_old_dic)
+    print("\n")
+
+    ###################
+    # CLEAN COMPONENTS
+    ###################
+    print("=====> CLEAN COMPONENTS <=====")
+    # We do clean up starting from root component (entry point)
+    rootComponent = searchNextComponent(production_new_dic, "")
+    while("" != rootComponent):
+        cleanComponentDeployment(production_new_dic, rootComponent, production_old_dic)
+        rootComponent = searchNextComponent(production_new_dic, rootComponent)
+    print("\n")
+
+    ###################
+    # UPDATE DEPLOYMENTS
+    ###################
+    print("=====> UPDATE DEPLOYMENTS <=====")
+    # We do update components starting from leaf component (exit point).
+    # TODO: CREATE DUMMY CLUSTER (Infrastructure) with no buckets and no services
+    #       In this case we do not care about creation order.
+    #       TO BE CHECKED!
+    leafComponent = searchPreviousComponent(production_new_dic, "")
+    while("" != leafComponent):
+        updateComponentDeployment(production_new_dic, leafComponent, production_old_dic, new_dir, old_dir, case)
+        leafComponent = searchPreviousComponent(production_new_dic, leafComponent)
+    print("\n")
+
+    ###################
+    # APPLY FDLs/TOSCAs
+    ###################
+    print("=====> UPDATE COMPONENTS <=====")
+    oscar_cli(new_dir, fdls, case)
+    print("\n")
     
-    #Save the the production
+    ###################
+    # SAVE PRODUCTION FILES
+    ###################
     if not os.path.isdir("%s/production/" % old_dir):
         os.makedirs("%s/production/" % old_dir)
     if not os.path.isdir("%s/production/" % new_dir):
         os.makedirs("%s/production/" % new_dir)
-    #Save the the production
     with open("%s/production/production_old.yaml" % old_dir, 'w+') as f:
             yaml.safe_dump(production_old_dic, f, indent=2)
     with open("%s/production/production_new.yaml" % new_dir, 'w+') as f:
             yaml.safe_dump(production_new_dic, f, indent=2)
-
 
 
 @click.command()
