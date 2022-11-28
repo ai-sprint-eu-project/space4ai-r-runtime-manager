@@ -1,5 +1,6 @@
 # CASE D - TOSCA BLURRY FACES PARTITION 2 TEMPLATE
 description: Template for launching an OSCAR Virtual Cluster
+type: Virtual
 imports:
 - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
 topology_template:

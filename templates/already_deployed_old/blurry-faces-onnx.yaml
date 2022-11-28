@@ -1,3 +1,4 @@
+#Already deployed OLD Blurry - TEMPLATE
 imports:
 - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
 topology_template:
@@ -11,11 +12,14 @@ topology_template:
     minio_password:
       default: 7xp5r47mnh7218r3
       type: string
-    oscar_name:
-      default: oscar-test
+    cluster_name:
+      default: oscar-cluster-yyqrf4ga
       type: string
     oscar_password:
       default: 3u7ff3d65xywug5m
+      type: string
+    domain_name:
+      default: aisprint-cefriel.link
       type: string
   node_templates:
     oscar_service_blurry-faces-onnx:

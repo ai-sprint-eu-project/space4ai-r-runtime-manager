@@ -1,3 +1,4 @@
+#CASO OLD Already deployed physical nodes- TEMPLATE
 ComputationalLayers: 
    computationalLayer1:
       number: 1
@@ -9,6 +10,6 @@ ComputationalLayers:
                access_key: minio
                secret_key: 7xp5r47mnh7218r3
             oscar:
-               name: oscar-test
+               name: oscar-cluster-yyqrf4ga
                password: 3u7ff3d65xywug5m
 

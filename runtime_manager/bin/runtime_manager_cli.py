@@ -37,6 +37,7 @@ def infras(application_dir, dir_to_save):
         InfId = response.split("%s/infrastructures/" % im_url_def)[1]
         tosca = yaml.safe_load(im_get_tosca(InfId, auth_path))
         tosca["infid"] = InfId
+        tosca["type"] = "Virtual"
         tosca = place_name(tosca)
         tosca_path = dir_to_save + "/" + tosca["component_name"] + ".yaml"
         with open(tosca_path, 'w+') as f:
@@ -59,7 +60,6 @@ def difference(application_dir, old_dir, new_dir, remove_bucket):
     # Processing production files
     production_old_dic = yaml_as_dict("%s/aisprint/deployments/base/production_deployment.yaml" % (application_dir))
     production_new_dic = yaml_as_dict("%s/aisprint/deployments/optimal_deployment/production_deployment.yaml" % (application_dir))
-
     # Creation completed old/new-production dictionaries and relate them with their respective InfID
     # We append to the old/ne dictionaries the key "toscas" that includes the old/new components
 
@@ -67,14 +67,22 @@ def difference(application_dir, old_dir, new_dir, remove_bucket):
     # files = glob.glob("%s/*.yaml" % old_dir)
     files = list(set(glob.glob("%s/*.yaml" % old_dir)) - set(glob.glob("%s/infras.yaml" % old_dir)))
     production_old_dic["System"]["toscas"] = {}
+    i = 0
     for one_file in files:
         tosca_old_dic = yaml_as_dict(one_file)
         if not("component_name") in tosca_old_dic.keys():
             input_ext = os.path.splitext(os.path.basename(one_file))[0]
             tosca_old_dic["component_name"] = input_ext
-        if not("infid") in tosca_old_dic.keys():
-            infraId = getInfraId(tosca_old_dic["component_name"], old_dir)
-            tosca_old_dic["infid"] = infraId
+        if ("type") in tosca_old_dic.keys():
+            if not("infid") in tosca_old_dic.keys():
+                infraId = getInfraId(tosca_old_dic["component_name"], old_dir)
+                tosca_old_dic["infid"] = infraId
+        else:
+            tosca_old_dic["type"] = "PhysicalAlreadyProvisioned"
+            if not("infid") in tosca_old_dic.keys():
+                tosca_old_dic["infid"] = "AlreadyProvisioned%s" % i
+                i += 1
+
         print("============================================")
         print("Deployed component:      %s" % tosca_old_dic["component_name"])
         print("Deployed infrastructure: %s" % tosca_old_dic["infid"])
@@ -114,7 +122,10 @@ def difference(application_dir, old_dir, new_dir, remove_bucket):
     # fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
     # oscar_cli(new_dir, fdls, case)
     # ------------------------------------------------
-
+    components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
+    machines_same = infrastructures_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])
+    print(components_same)   
+    print(machines_same)
     # Check if the number of the components are the same
     if len(production_old_dic["System"]["Components"]) == len(production_new_dic["System"]["Components"]):
         print("the number of clusters are the same")
@@ -136,7 +147,7 @@ def difference(application_dir, old_dir, new_dir, remove_bucket):
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
             fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            oscar_cli(new_dir, fdls, case, remove_bucket)
+            # oscar_cli(new_dir, fdls, case, remove_bucket)
     elif len(production_old_dic["System"]["Components"]) < len(production_new_dic["System"]["Components"]):
         print( "increase the number of clusters")
         components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
@@ -148,7 +159,7 @@ def difference(application_dir, old_dir, new_dir, remove_bucket):
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
             fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            oscar_cli(new_dir, fdls, case, remove_bucket)
+            # oscar_cli(new_dir, fdls, case, remove_bucket)
         elif components_same == 2 and machines_same == 3:
             #Case B
             print("We are at case B")
@@ -241,7 +252,7 @@ def difference(application_dir, old_dir, new_dir, remove_bucket):
             print("\n")
 
             print("=====> UPDATE COMPONENTS <=====")
-            oscar_cli(new_dir, fdls, case, remove_bucket)
+            # oscar_cli(new_dir, fdls, case, remove_bucket)
             print("\n")
 
 
@@ -258,7 +269,7 @@ def difference(application_dir, old_dir, new_dir, remove_bucket):
             print("DONE place partitioning of one component on the same infrastructure")
             fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
             # This part can be converted in a function 
-            oscar_cli(new_dir, fdls, case, remove_bucket)
+            # oscar_cli(new_dir, fdls, case, remove_bucket)
     else:
         print( "decrease the number of clusters")
     
@@ -281,7 +292,6 @@ def difference(application_dir, old_dir, new_dir, remove_bucket):
 def outputs(application_dir, dir_to_save):
     auth_path = "%s/%s" % (application_dir, im_auth_path_def)
     responses = im_get_infrastructures(auth_path)
-    i = 1
     for response in responses:
         InfId = response.split("%s/infrastructures/" % im_url_def)[1]
         output = im_get_outputs(InfId, auth_path)

@@ -4,6 +4,7 @@ description: Template for launching an OSCAR Virtual Cluster
 imports:
 - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
 infid: 39015641-5c20-11ed-800d-ca414e79af22
+type: Virtual
 topology_template:
   inputs:
     admin_token:

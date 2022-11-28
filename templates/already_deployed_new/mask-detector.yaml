@@ -1,18 +1,18 @@
-# CASE A - TOSCA MASK DETECTOR TEMPLATE
+#Already deployed NEW MASK detector- TEMPLATE
+component_name: mask-detector
 description: Template for launching an OSCAR Virtual Cluster
-type: Virtual
 imports:
 - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
 topology_template:
   inputs:
     admin_token:
-      default: jkh6yfls3cpmkagx
+      default: nhkoevj7qklou139
       type: string
     cert_user_email:
       default: jhondoe@server.com
       type: string
     cluster_name:
-      default: oscar-cluster-yyqrf4ga
+      default: oscar-cluster-khk5pgnt
       type: string
     domain_name:
       default: aisprint-cefriel.link
@@ -27,10 +27,10 @@ topology_template:
       default: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
       type: string
     minio_password:
-      default: 7xp5r47mnh7218r3
+      default: nhkwhmxxb79383j0
       type: string
     oscar_password:
-      default: 3u7ff3d65xywug5m
+      default: nhk11x07qab7zbfh
       type: string
     storage_size:
       default: 100 GB
@@ -212,14 +212,16 @@ topology_template:
         cpu: 0.9
         env_variables:
           COMPONENT_NAME: mask-detector
-          KCI: https://minio.oscar-cluster-yyqrf4ga.aisprint-cefriel.link
+          KCI: https://minio.oscar-cluster-khk5pgnt.aisprint-cefriel.link
           MONIT_HOST: ai-sprint-mask-detector-app-telegraf
           MONIT_PORT: '8094'
         image: registry.gitlab.polimi.it/ai-sprint/toscarizer/mask-detector_base_amd64:latest
+        image_pull_secrets:
+        - gitlabpolimi
         input:
         - path: mask-detector/input
           storage_provider: minio
-        - path: blurry-faces-onnx-partition1-2/output
+        - path: blurry-faces-onnx/output
           storage_provider: minio
         memory: 4096Mi
         name: mask-detector

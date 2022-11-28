@@ -457,6 +457,7 @@ def infrastructures_verification(dic_old, dic_new):
             if values_new["executionLayer"] == values_old["executionLayer"]  and values_new["Containers"]["container1"]["selectedExecutionResources"] == values_old["Containers"]["container1"]["selectedExecutionResources"]:
                 count_machines += 1
                 values_new["infid"] = values_old["infid"]
+            
     if count_machines == len(dic_old):
         # It is part of case C
         if count_machines == len(dic_new):
@@ -473,7 +474,7 @@ def infrastructures_verification(dic_old, dic_new):
         machines_same = 0
         print("All the infrastructures are different")
     else:
-        machines_same = 0
+        machines_same = 4
         print("The infrastructures are not the same the same")
     return machines_same
 
