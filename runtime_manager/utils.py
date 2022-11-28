@@ -6,6 +6,7 @@ from minio import Minio
 import im_interface
 import time
 from deepdiff import DeepDiff
+import glob
 
 im_auth_path_def = "/im/auth.dat"
 im_url_def = "https://appsgrycap.i3m.upv.es:31443/im"
@@ -438,19 +439,14 @@ def cleanDeletedComponent(dic_new, dic_old):
             print("Deleting removed component %s ..." %(component_old))
 
 
-def dic_creation(dic):
-    dic_new = {}
-    i = 0
-    for item, values in dic["System"]["Components"].items():
-        dic_new[values["name"]] =  { 
-        # dic_new[item] =  { 
-
-            # "component_name": values["name"],
-            "exec_layer": values["executionLayer"],
-            "resource": values["Containers"]["container1"]["selectedExecutionResources"]
-        }
-        i += 1
-    return dic_new
+# def dic_creation(dic):
+#     dic_new = {}
+#     for item, values in dic["System"]["Components"].items():
+#         dic_new[values["name"]] =  { 
+#             "exec_layer": values["executionLayer"],
+#             "resource": values["Containers"]["container1"]["selectedExecutionResources"]
+#         }
+#     return dic_new
 
 def mix_toscas(correct_name, toscas_old, tosca_new, application_dir, case):
     if case == "C":
@@ -501,10 +497,8 @@ def component_name_verification(dic_old, dic_new):
                 count_components += 1
             else:
                 print("The component name on '%s' on the new production does not match with the component name on old production" %(component_new))
-                # break
         else:
             print("The component '%s' in new production does not exist in old production, check the component assignation" % (component_new))
-            # break
     if count_components == len(dic_old):
         # It is part of case C
         components_same = 1
@@ -529,6 +523,7 @@ def infrastructures_verification(dic_old, dic_new):
             if values_new["executionLayer"] == values_old["executionLayer"]  and values_new["Containers"]["container1"]["selectedExecutionResources"] == values_old["Containers"]["container1"]["selectedExecutionResources"]:
                 count_machines += 1
                 values_new["infid"] = values_old["infid"]
+            
     if count_machines == len(dic_old):
         # It is part of case C
         if count_machines == len(dic_new):
@@ -545,7 +540,7 @@ def infrastructures_verification(dic_old, dic_new):
         machines_same = 0
         print("All the infrastructures are different")
     else:
-        machines_same = 0
+        machines_same = 4
         print("The infrastructures are not the same the same")
     return machines_same
 
@@ -560,10 +555,10 @@ def get_oscar_service_json(properties):
                 res['cpu'] = "%g" % value
             elif prop == 'env_variables':
                 res['environment'] = {'Variables': value}
-            elif prop == 'image_pull_secrets':
-                if not isinstance(value, list):
-                    value = [value]
-                res['image_pull_secrets'] = value
+            # elif prop == 'image_pull_secrets':
+            #     if not isinstance(value, list):
+            #         value = [value]
+            #     res['image_pull_secrets'] = value
     return res
 
 def generate_fdl(tosca):
@@ -605,6 +600,18 @@ def save_toscas_fdl(new_dir, toscas, case):
          }
     clusters = []
     done = []
+    #Create folder if it does not exist
+    if os.path.isdir("%s/production/ready-toscas" % (new_dir)):
+            print()
+    else:
+        os.makedirs("%s/production/ready-toscas" % (new_dir))
+    
+    #Clean folder if there are old files
+    files = glob.glob("%s/production/ready-toscas/*.yaml" % (new_dir))
+    if files != []:
+        for file in files:
+            os.remove(file)
+    #Create FDL
     for name, tosca in toscas.items():
         fdl = generate_fdl(tosca)
         identifier = list(fdl["functions"]["oscar"][0].keys())[0]
@@ -631,13 +638,12 @@ def save_toscas_fdl(new_dir, toscas, case):
         else:
             clusters.append(generated[0])
         done.append(identifier)
-        if not os.path.isdir("%s/production/ready-case%s/" % (new_dir, case)):
-            os.makedirs("%s/production/ready-case%s/" % (new_dir, case))
-        with open("%s/production/ready-case%s/%s-ready.yaml" % (new_dir, case, name), 'w+') as f:
+
+        #Save toscas that have been modified
+        with open("%s/production/ready-toscas/%s-ready.yaml" % (new_dir, name), 'w+') as f:
             yaml.safe_dump(tosca, f, indent=2)
-        # with open("%s/production/fdl/fdl-%s.yaml" % (new_dir, name), 'w+') as f:
-        #     yaml.safe_dump(fdl, f, indent=2)
     fdls["functions"]["oscar"] = clusters
+    #Save FDL
     if not os.path.isdir("%s/production/fdl/" % new_dir):
             os.makedirs("%s/production/fdl/" % new_dir)
     with open("%s/production/fdl/fdl-new.yaml" % (new_dir), 'w+') as f:
@@ -646,7 +652,7 @@ def save_toscas_fdl(new_dir, toscas, case):
     return fdls
 
 
-def oscar_cli(new_dir, fdls, case):
+def oscar_cli(new_dir, fdls, case, remove_bucket):
     oscar_cli = "~/go/bin/oscar-cli"
     new_dir = "%s/production/fdl" % (new_dir)
     if not os.path.isdir(new_dir):
@@ -692,7 +698,8 @@ def oscar_cli(new_dir, fdls, case):
                                 stream = os.popen(command)
                                 output = stream.read()
                                 print(output)
-                                minio_cli(endpoint_minio, access_key_minio, secret_key_minio, service_old, "DELETE")
+                                if remove_bucket:
+                                    minio_cli(endpoint_minio, access_key_minio, secret_key_minio, service_old, "DELETE")
             command = "%s apply %s/fdl-new.yaml --config %s" % (oscar_cli, new_dir, config_dir)
             print("APPLY: " + command)
             print("\n")
@@ -741,7 +748,6 @@ def oscar_cli(new_dir, fdls, case):
                                 print(output)
                                 minio_cli(endpoint_minio, access_key_minio, secret_key_minio, service_old, "DELETE")
                 nextFdl = searchNextFdl(fdls, nextFdl)
-
             command = "%s apply %s/fdl-new.yaml --config %s" % (oscar_cli, new_dir, config_dir)
             print("APPLY: " + command)
             print("\n")
