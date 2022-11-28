@@ -61,14 +61,16 @@ def infras(application_dir, dir_to_save):
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
 @click.option("--old_dir", help="Path to read the old toscas", default=None)
 @click.option("--new_dir", help="Path to read the new toscas", default=None)
-def difference(application_dir, old_dir, new_dir):
+@click.option("--update_infras", help="Enable the update of the infras at the start", default=False)
+def difference(application_dir, old_dir, new_dir, update_infras):
     if None == old_dir:
         old_dir = application_dir+"/aisprint/deployments/base/im"
 
     if None == new_dir:
         new_dir = application_dir+"/aisprint/deployments/optimal_deployment/im"
 
-    #getInfras(old_dir+"/..", application_dir+"/tmp")
+    if (True == update_infras):
+        getInfras(old_dir+"/..", application_dir+"/tmp")
 
     # Processing production files
     production_old_dic = yaml_as_dict("%s/aisprint/deployments/base/production_deployment.yaml" % (application_dir))
@@ -246,8 +248,8 @@ def difference(application_dir, old_dir, new_dir):
             print("=====> UPDATE DEPLOYMENTS <=====")
             # We do update components starting from leaf component (exit point).
             # TODO: CREATE DUMMY CLUSTER (Infrastructure) with no buckets and no services
-            # In this case we do not care about creation order.
-            # TO BE CHECKED!
+            #       In this case we do not care about creation order.
+            #       TO BE CHECKED!
             leafComponent = searchPreviousComponent(filedictionary, "")
             while("" != leafComponent):
                 updateComponentDeployment(filedictionary, leafComponent, production_old_dic, new_dir, old_dir, case)
@@ -257,12 +259,6 @@ def difference(application_dir, old_dir, new_dir):
             print("=====> UPDATE COMPONENTS <=====")
             oscar_cli(new_dir, fdls, case)
             print("\n")
-
-
-            # nextFdl = searchNextFdl(fdls, {})
-            # while({} != nextFdl):
-            #     print(list(nextFdl.keys()).pop())
-            #     nextFdl = searchNextFdl(fdls, nextFdl)
 
         elif components_same == 3 and machines_same == 2:
             #Case D
