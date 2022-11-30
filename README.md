@@ -81,7 +81,8 @@ The following command goes to the IM and get the toscas of all the available inf
 python3 runtime_manager_cli.py infras --application_dir <APPLICATION DIR> --dir_to_save <DIR TO SAVE THE TOSCA FILES>
 ```
 - application_dir: it is the default folder of the application
-- dir_to_save: it is folder to save the tosca files gotten from the IM
+- dir_to_save: it is folder to save the tosca files gotten from the IM (OPTIONAL)
+if there is not **dir_to_save**, it will take by default the folder *application_dir/aisprint/deployments/base/im* to save the old toscas
 
 ### Step 4: RUNTIME TOSCA
 
@@ -101,7 +102,9 @@ python3 runtime_manager_cli.py difference --application_dir  <APPLICATION DIR>  
 ```
 - application_dir: it is the default folder of the application
 - old_dir: directory to read the old tosca files (OPTIONAL)
+if there is not **old_dir**, it will take by default the folder *application_dir/aisprint/deployments/base/im*
 - new_dir: directory to read the old tosca files (OPTIONAL)
+if there is not **new_dir**, it will take by default the folder *application_dir/aisprint/deployments/optimal_deployment/im*
 - remove_bucket: it is a flag to remove the old buckets related with the oscar cluster (OPTIONAL)
 - update_infras; it is a flag to update the *infras.yaml* which is located at *application_dir/aisprint/deployments/base/im* (OPTIONAL)
 
