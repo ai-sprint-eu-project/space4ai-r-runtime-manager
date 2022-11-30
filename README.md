@@ -5,6 +5,13 @@
 
 ### Pre-requirements
 
+#### Space4ai-design
+
+It is assumed that all the process with Space4ai-design has been done before. For more documentation you can see their [documentation](https://gitlab.polimi.it/ai-sprint/space4ai-d) 
+
+#### Toscarizer
+The Toscarizer should been downloaded from the [repository](https://gitlab.polimi.it/ai-sprint/toscarizer) and placed somewhere in your pc. Later, the toscarizer directory will be asked.
+
 #### Install Go
 Follow the instructions on [go web page](https://go.dev/doc/install) for the respective computer's operating system.
 
@@ -23,7 +30,7 @@ to verify if it has been installed correctly. For more information see the [docu
 
 follow the steps explained on [minio web page](https://min.io/docs/minio/linux/reference/minio-mc.html#) 
 
-#### Install anaconda
+#### Install Anaconda
 
 follow the steps explained on [anaconda web page](https://docs.anaconda.com/anaconda/install/linux/) 
 
@@ -77,12 +84,13 @@ python3 runtime_manager_cli.py infras --application_dir <APPLICATION DIR> --dir_
 - dir_to_save: it is folder to save the tosca files gotten from the IM
 
 ### Step 4: RUNTIME TOSCA
-For that the toscarizer should installed in the same working directory
+
+This command will install all the toscarizer dependencies and create the new toscas using as references the new production_deployment.yaml and application_dag.yaml.
 
 ```sh
-python3 runtime_manager_cli.py Tosca --application_dir <APPLICATION DIR> --dir_to_save <DIR TO SAVE THE TOSCA FILES>
+python3 runtime_manager_cli.py tosca --application_dir <APPLICATION DIR> --tosca_dir <TOSCARIZER DIRECTORY>
 ```
-
+The toscas will be saved at the folder *application_dir/aisprint/deployments/optimal_deployment/im*
 
 ### Step 5: Evaluate production and apply the differences.
 
