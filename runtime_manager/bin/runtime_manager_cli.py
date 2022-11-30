@@ -28,7 +28,6 @@ def getInfras(application_dir, dir_to_save):
     responses = im_get_infrastructures(auth_path)
     i = 1
     components_deployed = {}
-
     for response in responses:
         InfId = response.split("%s/infrastructures/" % im_url_def)[1]
         tosca = yaml.safe_load(im_get_tosca(InfId, auth_path))
@@ -38,7 +37,7 @@ def getInfras(application_dir, dir_to_save):
         tosca_path = dir_to_save + "/" + tosca["component_name"] + ".yaml"
         with open(tosca_path, 'w+') as f:
             yaml.safe_dump(tosca, f, indent=2)
-        print("DONE. TOSCA files %s has been saved for the InfId %s" % (tosca["component_name"] + "-" + str(i) + ".yaml", InfId))
+        print("DONE. TOSCA files %s.yaml has been saved for the InfId %s" % (tosca["component_name"], InfId))
         success, state = im_get_state(response, auth_path)
         if success:
             components_deployed[tosca["component_name"]] = (response, state)

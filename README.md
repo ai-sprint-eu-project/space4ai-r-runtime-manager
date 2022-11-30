@@ -2,12 +2,8 @@
 
 ## Quick-Start
 
-### Step1: Install RUNTIME-MANAGER
 
-```sh
-git clone https://gitlab.cefriel.it/ai-sprint/runtime-manager.git
-cd runtime-manager/runtime-manager/bin
-```
+### Pre-requirements
 
 #### Install Go
 Follow the instructions on [go web page](https://go.dev/doc/install) for the respective computer's operating system.
@@ -27,13 +23,43 @@ to verify if it has been installed correctly. For more information see the [docu
 
 follow the steps explained on [minio web page](https://min.io/docs/minio/linux/reference/minio-mc.html#) 
 
+#### Install anaconda
 
-### Step2: Try --help
+follow the steps explained on [anaconda web page](https://docs.anaconda.com/anaconda/install/linux/) 
+
+
+### RUNTIME-MANAGER
+
+The folder *ai-sprint-design* should be already placed in the working directory.
+
+```sh
+git clone https://gitlab.cefriel.it/ai-sprint/runtime-manager.git
+cd runtime-manager/
+```
+
+#### Enviroment
+It is necessary to create the enviroment and activate it, to properly work with the runtime manager.
+
+To create the enviroment:
+```sh
+conda env create -f environment.yml
+```
+To activate enviorment:
+```sh
+conda activate runtime-manager
+```
+To deactivate enviroment if needed:
+```sh
+conda deactivate
+```
+
+#### Step1: Try --help
+Go to the folder *runtime-manager/bin*
 
 ```sh
 python3 runtime_manager_cli.py --help
 ```
-### Step 3: copy auth.dat 
+#### Step 2: copy auth.dat 
 Copy the file *auth.dat* in the application directory with the same format explained on [IM](https://imdocs.readthedocs.io/en/latest/gstarted.html?highlight=auth#authentication-file).
 
 ```sh
