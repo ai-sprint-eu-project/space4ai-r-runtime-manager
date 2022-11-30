@@ -155,16 +155,12 @@ def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket):
             print("Case: same machines and cluster, it is just to exchange the infrastructures between each component")
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE exchange the infrastructures of each cluster")
-            # fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            # oscar_cli(new_dir, fdls, case, remove_bucket)
         elif components_same == 3  and machines_same == 1:
             # Case E
             print("We are in case E")
             case = "E"
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
-            # fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            # oscar_cli(new_dir, fdls, case, remove_bucket)
     elif len(production_old_dic["System"]["Components"]) < len(production_new_dic["System"]["Components"]):
         print( "increase the number of clusters")
         components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
@@ -175,8 +171,6 @@ def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket):
             case = "A"
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
-            # fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            # oscar_cli(new_dir, fdls, case, remove_bucket)
         elif components_same == 2 and machines_same == 3:
             #Case B
             print("We are at case B")
@@ -242,9 +236,6 @@ def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket):
             case = "D"
             production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
             print("DONE place partitioning of one component on the same infrastructure")
-            # fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
-            # This part can be converted in a function 
-            # oscar_cli(new_dir, fdls, case, remove_bucket)
     else:
         print( "decrease the number of clusters")
 
