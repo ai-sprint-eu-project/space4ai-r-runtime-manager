@@ -352,12 +352,40 @@ def outputs(application_dir, dir_to_save):
         print("oscarui_endpoint:", oscarui_endpoint)
 
 
-
-
+@click.command()
+@click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
+@click.option("--tosca_dir", help="Path to save the toscas requested", default=None)
+def tosca(application_dir, tosca_dir):
+    current_path = os.path.abspath(os.getcwd())
+    os.chdir('%s' % tosca_dir)
+    command = "pip install ."
+    stream = os.popen(command) 
+    output = stream.read()
+    # print(output)
+    os.chdir('%s/toscarizer/bin' % tosca_dir)
+    tosca = "python3 toscarizer_cli.py"
+    stream = os.popen(tosca) 
+    output = stream.read()
+    print(output)
+    if "Commands" in output:
+        print("Toscarizer is installed")
+        command = "%s tosca --optimal --application_dir %s" % (tosca, application_dir)
+        stream = os.popen(command) 
+        output = stream.read()
+        print(output)
+        if "DONE. TOSCA file" in output:
+            print("NEW TOSCAS: have been generated and placed in the 'optimal_deploymets/im' folder")
+            os.chdir(current_path)
+        else:
+            print("NEW TOSCAS: There has been a problem to generated the new toscas")
+    else:
+        print("Toscarizer is not installed")
+    
 
 runtime_manager_cli.add_command(infras)
 runtime_manager_cli.add_command(difference)
 runtime_manager_cli.add_command(outputs)
+runtime_manager_cli.add_command(tosca)
 if __name__ == '__main__':
     runtime_manager_cli()
 
