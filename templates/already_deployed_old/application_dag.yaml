@@ -1,4 +1,4 @@
-#OLD - TEMPLATE
+#CASO OLD Already deployed - TEMPLATE
 System:
   name: ai-sprint_mask_detection_app
   components: ['blurry-faces-onnx', 'mask-detector'] 

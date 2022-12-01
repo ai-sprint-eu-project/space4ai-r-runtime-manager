@@ -1,9 +1,0 @@
-oscar:
-  oscar-cluster-u8g95rv1:
-    endpoint: https://oscar-cluster-u8g95rv1.aisprint-cefriel.link
-    auth_user: oscar
-    auth_password: 9u6b9uxugvsqinsv
-    ssl_verify: true
-    memory: 256Mi
-    log_level: INFO
-default: oscar-cluster-u8g95rv1

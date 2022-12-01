@@ -1,4 +1,4 @@
-#OLD - TEMPLATE
+#CASO Already deployed OLD- TEMPLATE
 System:
   name: Mask Detection Application
   NetworkDomains:
@@ -9,32 +9,31 @@ System:
       subNetworkDomains: []
       ComputationalLayers:
         computationalLayer1:
-          name: Public Cloud Layer 1
+          name: Edge Layer
           number: 1
-          type: Virtual
+          type: PhysicalAlreadyProvisioned
           Resources:
             resource1:
-              name: VM0
-              totalNodes: 2
-              description: AWS CEFRIEL 1
-              cost: 0.1
+              name: RaspPi
+              totalNodes: 3
+              description: Raspberry PIs 4 Model B
+              cost: 0.6
               memorySize: 4096
-              storageSize: 40
-              storageType: SSD
-              operatingSystemDistribution: Ubuntu
+              operatingSystemDistribution: Raspbian
               operatingSystemType: Linux
-              operatingSystemVersion: 22.04
-              operatingSystemImageId: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
-              secureBoot: false
-              measuredBoot: false
-              onSpot: false
+              operatingSystemVersion: 10
+              operatingSystemImageId: ''
+              secureBoot: string
+              measuredBoot: string
+              storageSize: 64GB
+              storageType: flash
               processors:
                 processor1:
-                  name: Xeon
-                  type: SkyLake
-                  architecture: amd64
+                  name: BCM2711
+                  type: Cortex-A72
+                  architecture: arm64
                   computingUnits: 4
-                  internalMemory: 8
+                  internalMemory: 4
                   SGXFlag: false
         computationalLayer2:
           name: Public Cloud Layer 2
@@ -77,7 +76,7 @@ System:
           networkProtection: false
           fileSystemProtection: false
           GPURequirement: false
-          selectedExecutionResources: VM0
+          selectedExecutionResources: RaspPi
     mask-detector:
       name: mask-detector
       executionLayer: 2

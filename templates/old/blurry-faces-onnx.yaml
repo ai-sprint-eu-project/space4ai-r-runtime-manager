@@ -1,8 +1,10 @@
+#OLD - TEMPLATE
 component_name: blurry-faces-onnx
 description: Template for launching an OSCAR Virtual Cluster
 imports:
 - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
 infid: 192eda6d-5c20-11ed-9654-4653ee2e5e57
+type: Virtual
 topology_template:
   inputs:
     admin_token:

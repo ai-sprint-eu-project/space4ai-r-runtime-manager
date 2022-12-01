@@ -1,5 +1,6 @@
 # CASE E - TOSCA MASK DETECTOR
 description: Template for launching an OSCAR Virtual Cluster
+type: Virtual
 imports:
 - ec3_custom_types: https://raw.githubusercontent.com/grycap/ec3/tosca/tosca/custom_types.yaml
 topology_template:
@@ -214,7 +215,7 @@ topology_template:
           KCI: https://minio.oscar-cluster-7n5ss7rj.aisprint-cefriel.link
           MONIT_HOST: ai-sprint-mask-detector-2-app-telegraf
           MONIT_PORT: '8094'
-        image: null
+        image: registry.gitlab.polimi.it/ai-sprint/toscarizer/mask-detector_base_amd64:latest
         image_pull_secrets:
         - gitlabpolimi
         input:

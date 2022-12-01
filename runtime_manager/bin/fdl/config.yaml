@@ -1,9 +1,0 @@
-oscar:
-  oscar-cluster-9q15lefj:
-    endpoint: https://oscar-cluster-9q15lefj.aisprint-cefriel.link
-    auth_user: oscar
-    auth_password: 7rz11x07qab7zbfh
-    ssl_verify: true
-    memory: 256Mi
-    log_level: INFO
-default: oscar-cluster-9q15lefj
