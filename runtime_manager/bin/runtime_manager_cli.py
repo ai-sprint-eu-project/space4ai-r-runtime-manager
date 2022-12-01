@@ -145,8 +145,11 @@ def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket, 
         tosca_new_dic["component_name"] = name_component
         # print(tosca_new_dic["component_name"])
         production_new_dic["System"]["toscas"][name_component] = tosca_new_dic
-    
+
     config_dir = "%s/production/fdl" % (new_dir)
+    if not os.path.isdir(config_dir):
+        os.makedirs(config_dir)
+
     config = {"oscar": {}}
     with open("%s/config.yaml" % (config_dir), 'w+') as f:
             yaml.safe_dump(config, f, indent=2)
