@@ -1,0 +1,134 @@
+System:
+  name: Mask Detection Application
+  NetworkDomains:
+    ND1:
+      name: Network Domain 1
+      AccessDelay: 2.77e-06
+      Bandwidth: 40000
+      subNetworkDomains: []
+      ComputationalLayers:
+        computationalLayer1:
+          name: Public Cloud Layer 1
+          number: 1
+          type: Virtual
+          Resources:
+            resource1:
+              name: VM0
+              totalNodes: 2
+              description: AWS CEFRIEL 1
+              cost: 0.1
+              memorySize: 4096
+              storageSize: 40
+              storageType: SSD
+              operatingSystemDistribution: Ubuntu
+              operatingSystemType: Linux
+              operatingSystemVersion: 22.04
+              operatingSystemImageId: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
+              secureBoot: false
+              measuredBoot: false
+              onSpot: false
+              processors:
+                processor1:
+                  name: Xeon
+                  type: SkyLake
+                  architecture: amd64
+                  computingUnits: 4
+                  internalMemory: 8
+                  SGXFlag: false
+        computationalLayer2:
+          name: Public Cloud Layer 2
+          number: 2
+          type: Virtual
+          Resources:
+            resource1:
+              name: VM1
+              totalNodes: 2
+              description: AWS CEFRIEL 1
+              cost: 0.1
+              memorySize: 4096
+              storageSize: 40
+              storageType: SSD
+              operatingSystemDistribution: Ubuntu
+              operatingSystemType: Linux
+              operatingSystemVersion: 22.04
+              operatingSystemImageId: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
+              secureBoot: false
+              measuredBoot: false
+              onSpot: false
+              processors:
+                processor1:
+                  name: Xeon
+                  type: SkyLake
+                  architecture: amd64
+                  computingUnits: 4
+                  internalMemory: 8
+                  SGXFlag: false
+        computationalLayer3:
+          name: Public Cloud Layer 2
+          number: 3
+          type: Virtual
+          Resources:
+            resource1:
+              name: VM2
+              totalNodes: 2
+              description: AWS CEFRIEL 1
+              cost: 0.1
+              memorySize: 4096
+              storageSize: 40
+              storageType: SSD
+              operatingSystemDistribution: Ubuntu
+              operatingSystemType: Linux
+              operatingSystemVersion: 22.04
+              operatingSystemImageId: aws://eu-west-1/ami-0b4cbe13ae8c9ea8f
+              secureBoot: false
+              measuredBoot: false
+              onSpot: false
+              processors:
+                processor1:
+                  name: Xeon
+                  type: SkyLake
+                  architecture: amd64
+                  computingUnits: 4
+                  internalMemory: 8
+                  SGXFlag: false
+  Components:
+    blurry-faces-onnx-partition1-1:
+      name: blurry-faces-onnx-partition1-1
+      executionLayer: 1
+      Containers:
+        container1:
+          image: registry.gitlab.polimi.it/ai-sprint/blurry-faces-onnx:tag
+          memorySize: 2048
+          computingUnits: 0.9
+          trustedExecution: false
+          networkProtection: false
+          fileSystemProtection: false
+          GPURequirement: false
+          selectedExecutionResources: VM0
+    blurry-faces-onnx-partition1-2:
+      name: blurry-faces-onnx-partition1-2
+      executionLayer: 2
+      Containers:
+        container1:
+          image: registry.gitlab.polimi.it/ai-sprint/blurry-faces-onnx:tag
+          memorySize: 2048
+          computingUnits: 0.9
+          trustedExecution: false
+          networkProtection: false
+          fileSystemProtection: false
+          GPURequirement: false
+          selectedExecutionResources: VM1
+    mask-detector:
+      name: mask-detector
+      executionLayer: 3
+      Containers:
+        container1:
+          image: registry.gitlab.polimi.it/ai-sprint/mask-detector:tag
+          memorySize: 4096
+          computingUnits: 0.9
+          trustedExecution: false
+          networkProtection: false
+          fileSystemProtection: false
+          GPURequirement: false
+          selectedExecutionResources: VM2
+    
