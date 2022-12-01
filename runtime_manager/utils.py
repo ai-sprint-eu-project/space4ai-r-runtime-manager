@@ -8,9 +8,14 @@ import time
 from deepdiff import DeepDiff
 import glob
 
+##########################
+### GLOBAL DEFINITIONS ###
+##########################
 im_auth_path_def = "im/auth.dat"
 im_url_def = "https://appsgrycap.i3m.upv.es:31443/im"
-# tosca_file_dir = "tosca_files"
+oscar_cli = "~/go/bin/oscar-cli"
+minio_cli = "~/minio-binaries/mc"
+
 def read_auth(im_auth_path):
     # if not im_auth and application_dir:
     #     im_auth = "%s/im/auth.dat" % application_dir
@@ -653,7 +658,7 @@ def save_toscas_fdl(new_dir, toscas, case):
 
 
 def oscar_cli(new_dir, fdls, case, remove_bucket):
-    oscar_cli = "~/go/bin/oscar-cli"
+    #oscar_cli = "~/go/bin/oscar-cli"
     new_dir = "%s/production/fdl" % (new_dir)
     if not os.path.isdir(new_dir):
         os.makedirs(new_dir)
@@ -761,7 +766,7 @@ def oscar_cli(new_dir, fdls, case, remove_bucket):
         print("It is not found oscar-cli path")
     
 def minio_cli(endpoint, access_key, secret_key, service_old, action):
-    minio_cli = "~/minio-binaries/mc"
+    #minio_cli = "~/minio-binaries/mc"
     command = "%s alias set %s %s %s %s" % (minio_cli, service_old, endpoint, access_key, secret_key)
     stream = os.popen(command) 
     output = stream.read()
