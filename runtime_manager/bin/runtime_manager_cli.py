@@ -18,6 +18,8 @@ import yaml
 import json
 import glob
 import os
+import shutil
+from datetime import datetime
 
 sys.path.append("../")
 from im_interface import  *
@@ -79,8 +81,9 @@ def infras(application_dir, dir_to_save):
 @click.option("--old_dir", help="Path to read the old toscas", default=None)
 @click.option("--new_dir", help="Path to read the new toscas", default=None)
 @click.option("--update_infras", help="Enable the update of the infras at the start", default=False)
+@click.option("--swap_deployments", help="Enable the swap of base and optimal deployments", default=False)
 @click.option("--remove_bucket", is_flag = True,  help="Flag to remove buckets from minio")
-def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket):
+def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket, swap_deployments):
     if None == old_dir:
         old_dir = application_dir+"/aisprint/deployments/base/im"
 
@@ -313,6 +316,25 @@ def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket):
     with open("%s/production/production_new.yaml" % new_dir, 'w+') as f:
             yaml.safe_dump(production_new_dic, f, indent=2)
 
+   ###################
+    # SWAP BASE and PROD
+    ###################
+    if (True == swap_deployments):
+        if not os.path.isdir("%s/bck/" % application_dir):
+            os.makedirs("%s/bck/" % application_dir)
+
+        f_path = "%s/aisprint/deployments/base" % application_dir
+
+        now = datetime.now()
+
+        sn = now.strftime("%Y-%m-%d-%H-%M-%S-%f")
+
+        os.rename(f_path, f_path + '_' + sn)
+
+        src_path = "%s/aisprint/deployments/optimal_deployment" % application_dir
+        dst_path = "%s/aisprint/deployments/base" % application_dir
+        shutil.copytree(src_path, dst_path)
+
 
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
@@ -371,23 +393,35 @@ def outputs(application_dir, dir_to_save):
 
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
-@click.option("--tosca_dir", help="Path to save the toscas requested", default=None)
+@click.option("--tosca_dir", help="Path to installed toscarizer", default=None)
 def tosca(application_dir, tosca_dir):
     current_path = os.path.abspath(os.getcwd())
-    os.chdir('%s' % tosca_dir)
-    command = "pip install ."
-    stream = os.popen(command) 
-    output = stream.read()
+    #os.chdir('%s' % tosca_dir)
+    #command = "pip install ."
+    #stream = os.popen(command) 
+    #output = stream.read()
     # print(output)
-    os.chdir('%s/toscarizer/bin' % tosca_dir)
-    tosca = "python3 toscarizer_cli.py"
+    if (tosca_dir):
+        print("Custom Toscarizer")
+        os.chdir('%s/toscarizer/bin' % tosca_dir)
+        tosca = "python3 toscarizer_cli.py"
+        startDir = application_dir.split("/")
+        if startDir[0] == "." or startDir[0] == "..":
+            app_dir = current_path + "/" + application_dir
+        else:
+            app_dir = application_dir
+    else:
+        print("Default Toscarizer")
+        tosca = "toscarizer"
+        app_dir = application_dir
     stream = os.popen(tosca) 
     output = stream.read()
     print(output)
     if "Commands" in output:
         print("Toscarizer is installed")
-        command = "%s tosca --optimal --application_dir %s" % (tosca, application_dir)
-        stream = os.popen(command) 
+        command = "%s tosca --optimal --application_dir %s" % (tosca, app_dir)
+        print("Toscarizer command: %s" % command)
+        stream = os.popen(command)
         output = stream.read()
         print(output)
         if "DONE. TOSCA file" in output:
