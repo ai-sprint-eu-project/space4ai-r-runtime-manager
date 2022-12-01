@@ -107,6 +107,7 @@ if there is not **old_dir**, it will take by default the folder *application_dir
 if there is not **new_dir**, it will take by default the folder *application_dir/aisprint/deployments/optimal_deployment/im*
 - remove_bucket: it is a flag to remove the old buckets related with the oscar cluster (OPTIONAL)
 - update_infras; it is a flag to update the *infras.yaml* which is located at *application_dir/aisprint/deployments/base/im* (OPTIONAL)
+- swap_deployments; it is a flag to save base folder to base_TIMESTAMP foder and then copy optimal_deployments to base (OPTIONAL)
 
 
 ### Read OUTPUTS of the infrastructures

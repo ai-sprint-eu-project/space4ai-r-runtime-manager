@@ -13,8 +13,8 @@ import glob
 ##########################
 im_auth_path_def = "im/auth.dat"
 im_url_def = "https://appsgrycap.i3m.upv.es:31443/im"
-oscar_cli = "~/go/bin/oscar-cli"
-minio_cli = "~/minio-binaries/mc"
+oscar_cli_cmd = "~/go/bin/oscar-cli"
+minio_cli_cmd = "~/minio-binaries/mc"
 
 def read_auth(im_auth_path):
     # if not im_auth and application_dir:
@@ -331,7 +331,7 @@ def updateTosca(new_comp, old_comp, new_dir, old_dir, case, delay=10, max_time=3
                     max_count = 3
                     wait_time = 10
                     while not success and num < (max_count+1):
-                        success = im_interface.im_post_infrastructures_update(old_dir+"/.."+im_auth_path_def, "%s/production/ready-case%s/%s-ready.yaml" % (new_dir, case, new_comp), infId)
+                        success = im_interface.im_post_infrastructures_update(old_dir+"/../"+im_auth_path_def, "%s/production/ready-toscas/%s-ready.yaml" % (new_dir, new_comp), infId)
                         if not success:
                             if (num + 1) < (max_count+1):
                                 print("Error launching deployment for component %s. Waiting (%ssec) to retry (%s/%s)." % (new_comp, wait_time, num, max_count-1))
@@ -347,7 +347,7 @@ def updateTosca(new_comp, old_comp, new_dir, old_dir, case, delay=10, max_time=3
             infId, state = components_deployed[new_comp]
             if state in ['pending', 'running']:
                 pass
-                success, state = im_interface.im_get_state(infId, old_dir+"/.."+im_auth_path_def)
+                success, state = im_interface.im_get_state(infId, old_dir+"/../"+im_auth_path_def)
                 if success:
                     components_deployed[new_comp] = infId, state
             else:
@@ -369,7 +369,7 @@ def deployTosca(comp, new_dir, case, delay=10, max_time=30):
                     max_count = 3
                     wait_time = 10
                     while not success and num < (max_count+1):
-                        success, inf_id = im_interface.im_post_infrastructures(new_dir+"/.."+im_auth_path_def, "%s/production/ready-case%s/%s-ready.yaml" % (new_dir, case, comp))
+                        success, inf_id = im_interface.im_post_infrastructures(new_dir+"/../"+im_auth_path_def, "%s/production/ready-toscas/%s-ready.yaml" % (new_dir, comp))
                         if not success:
                             if (num + 1) < (max_count+1):
                                 print("Error launching deployment for component %s. Waiting (%ssec) to retry (%s/%s)." % (comp, wait_time, num, max_count-1))
@@ -385,7 +385,7 @@ def deployTosca(comp, new_dir, case, delay=10, max_time=30):
             inf_id, state = components_deployed[comp]
             if state in ['pending', 'running']:
                 pass
-                success, state = im_interface.im_get_state(inf_id, new_dir+"/.."+im_auth_path_def)
+                success, state = im_interface.im_get_state(inf_id, new_dir+"/../"+im_auth_path_def)
                 if success:
                     components_deployed[comp] = inf_id, state
                     end = True
@@ -402,9 +402,8 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
     if ("Virtual" == rt):
         if ("" == (se)):
             print("Creating infrastructure ...")
-            # TODO: REENABLE the deploy. It has been commented out for testing purpose.
-            # res = deployTosca(component, new_dir, case)
-            # print(yaml.safe_dump(res, indent=2))
+            res = deployTosca(component, new_dir, case)
+            print(yaml.safe_dump(res, indent=2))
         else:
             sameExecution, diff = compareExecution(production_old_dic, dic, component, se)
             if (True == sameExecution):
@@ -414,9 +413,8 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
                 value = list(list(diff.values())[0].values())[0]
                 nv = value['new_value']
                 print("Same execution with changed flavour: Updating infrastructure %s..." % getInfraId(se, old_dir))
-                # TODO: check waiting time for infrastructure reconfiguration!
-                # res = updateTosca(component, se, new_dir, old_dir, case)
-                # print(yaml.safe_dump(res, indent=2))
+                res = updateTosca(component, se, new_dir, old_dir, case)
+                print(yaml.safe_dump(res, indent=2))
 
     else:
         print("Phisical resource action ...")
@@ -658,7 +656,7 @@ def save_toscas_fdl(new_dir, toscas, case):
 
 
 def oscar_cli(new_dir, fdls, case, remove_bucket):
-    #oscar_cli = "~/go/bin/oscar-cli"
+    oscar_cli = oscar_cli_cmd
     new_dir = "%s/production/fdl" % (new_dir)
     if not os.path.isdir(new_dir):
         os.makedirs(new_dir)
@@ -766,7 +764,7 @@ def oscar_cli(new_dir, fdls, case, remove_bucket):
         print("It is not found oscar-cli path")
     
 def minio_cli(endpoint, access_key, secret_key, service_old, action):
-    #minio_cli = "~/minio-binaries/mc"
+    minio_cli = minio_cli_cmd
     command = "%s alias set %s %s %s %s" % (minio_cli, service_old, endpoint, access_key, secret_key)
     stream = os.popen(command) 
     output = stream.read()
