@@ -80,8 +80,8 @@ def infras(application_dir, dir_to_save):
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
 @click.option("--old_dir", help="Path to read the old toscas", default=None)
 @click.option("--new_dir", help="Path to read the new toscas", default=None)
-@click.option("--update_infras", help="Enable the update of the infras at the start", default=False)
-@click.option("--swap_deployments", help="Enable the swap of base and optimal deployments", default=False)
+@click.option("--update_infras", is_flag = True, help="Enable the update of the infras at the start", default=False)
+@click.option("--swap_deployments", is_flag = True, help="Enable the swap of base and optimal deployments", default=False)
 @click.option("--remove_bucket", is_flag = True,  help="Flag to remove buckets from minio")
 def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket, swap_deployments):
     if None == old_dir:
