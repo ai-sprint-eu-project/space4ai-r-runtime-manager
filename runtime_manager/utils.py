@@ -402,9 +402,8 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
     if ("Virtual" == rt):
         if ("" == (se)):
             print("Creating infrastructure ...")
-            # TODO: REENABLE the deploy. It has been commented out for testing purpose.
-            # res = deployTosca(component, new_dir, case)
-            # print(yaml.safe_dump(res, indent=2))
+            res = deployTosca(component, new_dir, case)
+            print(yaml.safe_dump(res, indent=2))
         else:
             sameExecution, diff = compareExecution(production_old_dic, dic, component, se)
             if (True == sameExecution):
@@ -414,9 +413,8 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
                 value = list(list(diff.values())[0].values())[0]
                 nv = value['new_value']
                 print("Same execution with changed flavour: Updating infrastructure %s..." % getInfraId(se, old_dir))
-                # TODO: check waiting time for infrastructure reconfiguration!
-                # res = updateTosca(component, se, new_dir, old_dir, case)
-                # print(yaml.safe_dump(res, indent=2))
+                res = updateTosca(component, se, new_dir, old_dir, case)
+                print(yaml.safe_dump(res, indent=2))
 
     else:
         print("Phisical resource action ...")
