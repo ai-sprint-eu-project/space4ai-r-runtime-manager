@@ -11,16 +11,17 @@ import glob
 ##########################
 ### GLOBAL DEFINITIONS ###
 ##########################
-im_auth_path_def = "im/auth.dat"
+im_auth_path_def = "/../../../im/auth.dat"
 im_url_def = "https://appsgrycap.i3m.upv.es:31443/im"
 oscar_cli_cmd = "~/go/bin/oscar-cli"
 minio_cli_cmd = "~/minio-binaries/mc"
 
 def read_auth(im_auth_path):
+    #print("AUTH: %s" % im_auth_path)
     # if not im_auth and application_dir:
     #     im_auth = "%s/im/auth.dat" % application_dir
     if not os.path.isfile(str(im_auth_path)):
-        print("IM auth data does not exit." % im_auth_path)
+        print("IM auth data does not exist." % im_auth_path)
         sys.exit(-1)
     with open(im_auth_path, 'r') as f:
         auth_data = f.read().replace("\n", "\\n") 
@@ -62,8 +63,8 @@ def getInfraId(component, dir):
 def getSelectedResources(component, dic):
     res = []
     for item, values in dic["System"]["Components"][component]["Containers"].items():
-        #print(">>>", values['selectedExecutionResources'])
-        res.append(values['selectedExecutionResources'])
+        #print(">>>", values['selectedExecutionResource'])
+        res.append(values['selectedExecutionResource'])
     return res
 
 def getResourcesType(component, dic):
@@ -398,7 +399,7 @@ def deployTosca(comp, new_dir, case, delay=10, max_time=30):
 def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_dir, case):
     rt = getResourcesType(component, dic)
     se = searchExecution(production_old_dic, dic, component)
-    print("Updating deployment of component --> %s (%s)" % (component, rt))
+    print(">Updating deployment of component --> %s (%s)" % (component, rt))
     if ("Virtual" == rt):
         if ("" == (se)):
             print("Creating infrastructure ...")
@@ -422,7 +423,7 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
 def cleanComponentDeployment(dic, component, production_old_dic):
     rt = getResourcesType(component, dic)
     se = searchExecution(production_old_dic, dic, component)
-    print("Cleaning deployment of component --> %s (%s)" % (component, rt))
+    print(">Cleaning deployment of component --> %s (%s)" % (component, rt))
     if ("Virtual" == rt):
         if ("" == (se)):
             print("New infrastructure nothing to clean!")
@@ -439,7 +440,7 @@ def cleanDeletedComponent(dic_new, dic_old):
                     deletedComponent = False
                     break
         if (True == deletedComponent):
-            print("Deleting removed component %s ..." %(component_old))
+            print(">Deleting removed component --> %s] ...\n" %(component_old))
 
 
 # def dic_creation(dic):
@@ -447,7 +448,7 @@ def cleanDeletedComponent(dic_new, dic_old):
 #     for item, values in dic["System"]["Components"].items():
 #         dic_new[values["name"]] =  { 
 #             "exec_layer": values["executionLayer"],
-#             "resource": values["Containers"]["container1"]["selectedExecutionResources"]
+#             "resource": values["Containers"]["container1"]["selectedExecutionResource"]
 #         }
 #     return dic_new
 
@@ -523,7 +524,7 @@ def infrastructures_verification(dic_old, dic_new):
     machines_same = -1
     for component_new, values_new in dic_new.items():
         for component_old, values_old in dic_old.items():
-            if values_new["executionLayer"] == values_old["executionLayer"]  and values_new["Containers"]["container1"]["selectedExecutionResources"] == values_old["Containers"]["container1"]["selectedExecutionResources"]:
+            if values_new["executionLayer"] == values_old["executionLayer"]  and values_new["Containers"]["container1"]["selectedExecutionResource"] == values_old["Containers"]["container1"]["selectedExecutionResource"]:
                 count_machines += 1
                 values_new["infid"] = values_old["infid"]
             

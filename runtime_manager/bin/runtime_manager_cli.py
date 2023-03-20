@@ -82,8 +82,9 @@ def infras(application_dir, dir_to_save):
 @click.option("--new_dir", help="Path to read the new toscas", default=None)
 @click.option("--update_infras", is_flag = True, help="Enable the update of the infras at the start", default=False)
 @click.option("--swap_deployments", is_flag = True, help="Enable the swap of base and optimal deployments", default=False)
+@click.option("--apply_diff", is_flag = True, help="Apply calculated differences", default=False)
 @click.option("--remove_bucket", is_flag = True,  help="Flag to remove buckets from minio")
-def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket, swap_deployments):
+def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket, swap_deployments, apply_diff):
     if None == old_dir:
         old_dir = application_dir+"/aisprint/deployments/base/im"
 
@@ -207,6 +208,7 @@ def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket, 
                 filedictionary = json.loads(filedata)
 
                 for component_new, values_new in production_new_dic["System"]["Components"].items():
+                    #print("------\n %s \n" % production_new_dic)
                     tosca_new = production_new_dic["System"]["toscas"][values_new["name"]]
 
                     print("-----------------------")
@@ -270,45 +272,49 @@ def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket, 
         fdls = save_toscas_fdl(new_dir, production_new_dic["System"]["toscas"], case)
         print("\n")
 
-        ###################
-        # REMOVE COMPONENTS
-        ###################
-        print("=====> REMOVE DELETED COMPONENTS <=====")
-        cleanDeletedComponent(production_new_dic, production_old_dic)
-        print("\n")
+        if (True == apply_diff):
+            ###################
+            # REMOVE COMPONENTS
+            ###################
+            print("=====> REMOVE DELETED COMPONENTS <=====")
+            cleanDeletedComponent(production_new_dic, production_old_dic)
+            print("\n")
 
-        ###################
-        # CLEAN COMPONENTS
-        ###################
-        print("=====> CLEAN COMPONENTS <=====")
-        # We do clean up starting from root component (entry point)
-        rootComponent = searchNextComponent(production_new_dic, "")
-        while("" != rootComponent):
-            cleanComponentDeployment(production_new_dic, rootComponent, production_old_dic)
-            rootComponent = searchNextComponent(production_new_dic, rootComponent)
-        print("\n")
+            ###################
+            # CLEAN COMPONENTS
+            ###################
+            print("=====> CLEAN COMPONENTS <=====")
+            # We do clean up starting from root component (entry point)
+            rootComponent = searchNextComponent(production_new_dic, "")
+            while("" != rootComponent):
+                cleanComponentDeployment(production_new_dic, rootComponent, production_old_dic)
+                rootComponent = searchNextComponent(production_new_dic, rootComponent)
+            print("\n")
 
-        ###################
-        # UPDATE DEPLOYMENTS
-        ###################
-        print("=====> UPDATE DEPLOYMENTS <=====")
-        # We do update components starting from leaf component (exit point).
-        # TODO: CREATE DUMMY CLUSTER (Infrastructure) with no buckets and no services
-        #       In this case we do not care about creation order.
-        #       TO BE CHECKED!
-        leafComponent = searchPreviousComponent(production_new_dic, "")
-        while("" != leafComponent):
-            updateComponentDeployment(production_new_dic, leafComponent, production_old_dic, new_dir, old_dir, case)
-            leafComponent = searchPreviousComponent(production_new_dic, leafComponent)
-        print("\n")
+            ###################
+            # UPDATE DEPLOYMENTS
+            ###################
+            print("=====> UPDATE DEPLOYMENTS <=====")
+            # We do update components starting from leaf component (exit point).
+            # TODO: CREATE DUMMY CLUSTER (Infrastructure) with no buckets and no services
+            #       In this case we do not care about creation order.
+            #       TO BE CHECKED!
+            leafComponent = searchPreviousComponent(production_new_dic, "")
+            while("" != leafComponent):
+                updateComponentDeployment(production_new_dic, leafComponent, production_old_dic, new_dir, old_dir, case)
+                leafComponent = searchPreviousComponent(production_new_dic, leafComponent)
+            print("\n")
 
-        ###################
-        # APPLY FDLs/TOSCAs
-        ###################
-        print("=====> UPDATE COMPONENTS <=====")
-        oscar_cli(new_dir, fdls, case, remove_bucket)
-        print("\n")
-        
+            ###################
+            # APPLY FDLs/TOSCAs
+            ###################
+            print("=====> UPDATE COMPONENTS <=====")
+            #print("Don't...")
+            oscar_cli(new_dir, fdls, case, remove_bucket)
+            print("\n")
+        else:
+             print("=====> WE ARE NOT APPLYNG THE CHANGES...<=====")
+
         ###################
         # SAVE PRODUCTION FILES
         ###################
