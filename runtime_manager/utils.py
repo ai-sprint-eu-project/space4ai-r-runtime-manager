@@ -1,3 +1,16 @@
+##############################################################################################################
+#                                                                                                            
+#               ___   ___                                                 ___   ___                          
+#     // | |       / /              //   ) )     //   ) )     //   ) )       / /        /|    / /  /__  ___/ 
+#    //__| |      / /              ((           //___/ /     //___/ /       / /        //|   / /     / /     
+#   / ___  |     / /      ____       \\        / ____ /     / ___ (        / /        // |  / /     / /      
+#  //    | |    / /                    ) )    //           //   | |       / /        //  | / /     / /       
+# //     | | __/ /___           ((___ / /    //           //    | |    __/ /___     //   |/ /     / /        
+#                                                                                                            
+#
+# Component: RUNTIME-MANAGER
+##############################################################################################################
+
 import os
 import yaml
 import copy
@@ -8,24 +21,60 @@ import time
 from deepdiff import DeepDiff
 import glob
 
-##########################
-### GLOBAL DEFINITIONS ###
-##########################
-im_auth_path_def = "/../../../im/auth.dat"
-im_url_def = "https://appsgrycap.i3m.upv.es:31443/im"
-oscar_cli_cmd = "~/go/bin/oscar-cli"
-minio_cli_cmd = "~/minio-binaries/mc"
+# Import global configuration
+from config import im_url_def, im_auth_path_def, oscar_cli_cmd, minio_cli_cmd
+import config as cfg
 
 def read_auth(im_auth_path):
     #print("AUTH: %s" % im_auth_path)
     # if not im_auth and application_dir:
     #     im_auth = "%s/im/auth.dat" % application_dir
     if not os.path.isfile(str(im_auth_path)):
-        print("IM auth data does not exist." % im_auth_path)
+        print("IM auth data does not exist (%s)" % im_auth_path)
         sys.exit(-1)
     with open(im_auth_path, 'r') as f:
         auth_data = f.read().replace("\n", "\\n") 
     return auth_data
+
+def getInfras(application_dir, dir_to_save):
+    auth_path = "%s/%s" % (application_dir, im_auth_path_def)
+    responses = im_interface.im_get_infrastructures(cfg.im_auth_path_def)
+    i = 0
+    components_deployed = {}
+    infras_file = yaml_as_dict("%s/aisprint/deployments/base/im/infras.yaml" % (application_dir))
+    infras_old = []
+    for item, value in infras_file.items():
+        inf_old = value[0].split("/")[-1:][0]
+        infras_old.append(inf_old)
+    for response in responses:
+        InfId = response.split("%s/infrastructures/" % im_url_def)[1]
+        if InfId in infras_old:
+            print("The Infrastructure %s exist in the IM and in the 'infras.yaml'" % InfId)
+            tosca = yaml.safe_load(im_interface.im_get_tosca(InfId, im_auth_path_def))
+            tosca["infid"] = InfId
+            tosca["type"] = "Virtual"
+            tosca = place_name(tosca)
+            tosca_path = dir_to_save + "/" + tosca["component_name"] + ".yaml"
+            with open(tosca_path, 'w+') as f:
+                yaml.safe_dump(tosca, f, indent=2)
+            print("DONE. TOSCA files %s.yaml has been saved for the InfId %s" % (tosca["component_name"], InfId))
+            print("\n")
+            success, state = im_interface.im_get_state(response, im_auth_path_def)
+            if success:
+                components_deployed[tosca["component_name"]] = (response, state)
+            else:
+                components_deployed[tosca["component_name"]] = (response, "unknown")
+            i += 1
+        else:
+            print("The Infrastructure %s exist in the IM, but NOT in the 'infras.yaml'" % InfId)
+            print("\n")
+    if i == len(infras_old):
+        print("All the Infrastructures in 'infras.yaml' exists in the IM")
+        im_infras = "%s/im/infras.yaml" % application_dir
+        with open(im_infras, 'w+') as f:
+                yaml.safe_dump(components_deployed, f, indent=2)
+    else:
+        print("The infras.yaml is not totally updated, take a look to the  'infras.yaml' and compare it with the infrastructures defined in the IM")
 
 def place_name(tosca):
     oscar_service = tosca["topology_template"]["outputs"]["oscar_service_url"]["value"]["get_attribute"][0] 
@@ -442,16 +491,6 @@ def cleanDeletedComponent(dic_new, dic_old):
         if (True == deletedComponent):
             print(">Deleting removed component --> %s] ...\n" %(component_old))
 
-
-# def dic_creation(dic):
-#     dic_new = {}
-#     for item, values in dic["System"]["Components"].items():
-#         dic_new[values["name"]] =  { 
-#             "exec_layer": values["executionLayer"],
-#             "resource": values["Containers"]["container1"]["selectedExecutionResource"]
-#         }
-#     return dic_new
-
 def mix_toscas(correct_name, toscas_old, tosca_new, application_dir, case):
     if case == "C":
         tosca_new["topology_template"]["inputs"] = toscas_old[correct_name]["topology_template"]["inputs"]
@@ -654,7 +693,6 @@ def save_toscas_fdl(new_dir, toscas, case):
         yaml.safe_dump(fdls, f, indent=2)
     print("DONE new TOSCA and FDL saved")
     return fdls
-
 
 def oscar_cli(new_dir, fdls, case, remove_bucket):
     oscar_cli = oscar_cli_cmd

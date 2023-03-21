@@ -1,9 +1,22 @@
+##############################################################################################################
+#                                                                                                            
+#               ___   ___                                                 ___   ___                          
+#     // | |       / /              //   ) )     //   ) )     //   ) )       / /        /|    / /  /__  ___/ 
+#    //__| |      / /              ((           //___/ /     //___/ /       / /        //|   / /     / /     
+#   / ___  |     / /      ____       \\        / ____ /     / ___ (        / /        // |  / /     / /      
+#  //    | |    / /                    ) )    //           //   | |       / /        //  | / /     / /       
+# //     | | __/ /___           ((___ / /    //           //    | |    __/ /___     //   |/ /     / /        
+#                                                                                                            
+#
+# Component: RUNTIME-MANAGER
+##############################################################################################################
+
 import requests
 import sys
+from utils import read_auth
 
-# sys.path.append(".")
-
-from utils import read_auth, im_url_def
+# Import global configuration
+from config import im_url_def
 
 def im_get_infrastructures(im_auth_path_def):
     auth_data = read_auth(im_auth_path_def)
