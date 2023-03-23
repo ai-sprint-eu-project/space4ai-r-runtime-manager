@@ -25,53 +25,18 @@ sys.path.append("../")
 from im_interface import  *
 from utils import *
 
-def getInfras(application_dir, dir_to_save):
-    auth_path = "%s/%s" % (application_dir, im_auth_path_def)
-    responses = im_get_infrastructures(auth_path)
-    i = 0
-    components_deployed = {}
-    infras_file = yaml_as_dict("%s/aisprint/deployments/base/im/infras.yaml" % (application_dir))
-    infras_old = []
-    for item, value in infras_file.items():
-        inf_old = value[0].split("/")[-1:][0]
-        infras_old.append(inf_old)
-    for response in responses:
-        InfId = response.split("%s/infrastructures/" % im_url_def)[1]
-        if InfId in infras_old:
-            print("The Infrastructure %s exist in the IM and in the 'infras.yaml'" % InfId)
-            tosca = yaml.safe_load(im_get_tosca(InfId, auth_path))
-            tosca["infid"] = InfId
-            tosca["type"] = "Virtual"
-            tosca = place_name(tosca)
-            tosca_path = dir_to_save + "/" + tosca["component_name"] + ".yaml"
-            with open(tosca_path, 'w+') as f:
-                yaml.safe_dump(tosca, f, indent=2)
-            print("DONE. TOSCA files %s.yaml has been saved for the InfId %s" % (tosca["component_name"], InfId))
-            print("\n")
-            success, state = im_get_state(response, auth_path)
-            if success:
-                components_deployed[tosca["component_name"]] = (response, state)
-            else:
-                components_deployed[tosca["component_name"]] = (response, "unknown")
-            i += 1
-        else:
-            print("The Infrastructure %s exist in the IM, but NOT in the 'infras.yaml'" % InfId)
-            print("\n")
-    if i == len(infras_old):
-        print("All the Infrastructures in 'infras.yaml' exists in the IM")
-        im_infras = "%s/im/infras.yaml" % application_dir
-        with open(im_infras, 'w+') as f:
-                yaml.safe_dump(components_deployed, f, indent=2)
-    else:
-        print("The infras.yaml is not totally updated, take a look to the  'infras.yaml' and compare it with the infrastructures defined in the IM")
+from config import update_app_dir
+import config as cfg
 
 @click.group()
 def runtime_manager_cli():
     pass
+
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
 @click.option("--dir_to_save", help="Path to save the toscas requested", default=None)
 def infras(application_dir, dir_to_save):
+    update_app_dir(application_dir)
     if None ==  dir_to_save:
         dir_to_save = application_dir + "/aisprint/deployments/base/im"
     getInfras(application_dir, dir_to_save)
@@ -84,7 +49,17 @@ def infras(application_dir, dir_to_save):
 @click.option("--swap_deployments", is_flag = True, help="Enable the swap of base and optimal deployments", default=False)
 @click.option("--apply_diff", is_flag = True, help="Apply calculated differences", default=False)
 @click.option("--remove_bucket", is_flag = True,  help="Flag to remove buckets from minio")
-def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket, swap_deployments, apply_diff):
+@click.option("--edge", is_flag = True, help="Rm running on edge", default=False)
+def difference(application_dir,
+               old_dir,
+               new_dir,
+               update_infras,
+               remove_bucket,
+               swap_deployments,
+               apply_diff,
+               edge):
+    update_app_dir(application_dir)
+
     if None == old_dir:
         old_dir = application_dir+"/aisprint/deployments/base/im"
 
@@ -93,6 +68,15 @@ def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket, 
 
     if (True == update_infras):
         getInfras(old_dir+"/..", application_dir+"/tmp")
+
+    if (True == edge):
+         print("##################")
+         print("### RM ON EDGE ###")
+         print("##################")
+    else:
+         print("###################")
+         print("### RM ON CLOUD ###")
+         print("###################")
 
     # Processing production files
     production_old_dic = yaml_as_dict("%s/aisprint/deployments/base/production_deployment.yaml" % (application_dir))
@@ -262,6 +246,11 @@ def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket, 
                 case = "D"
                 production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
                 print("DONE place partitioning of one component on the same infrastructure")
+            elif components_same == 2 and machines_same == 4:
+                print("We are at case F")
+                case = "F"
+                print("in processing")
+                production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
         else:
             print( "decrease the number of clusters")
 
@@ -352,11 +341,11 @@ def difference(application_dir, old_dir, new_dir, update_infras, remove_bucket, 
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
 @click.option("--dir_to_save", help="Path to save the toscas requested", default=None)
 def outputs(application_dir, dir_to_save):
-    auth_path = "%s/%s" % (application_dir, im_auth_path_def)
-    responses = im_get_infrastructures(auth_path)
+    update_app_dir(application_dir)
+    responses = im_get_infrastructures(cfg.im_auth_path_def)
     for response in responses:
         InfId = response.split("%s/infrastructures/" % im_url_def)[1]
-        output = im_get_outputs(InfId, auth_path)
+        output = im_get_outputs(InfId, cfg.im_auth_path_def)
         with open("%s/%s.json" % (dir_to_save, InfId), 'w', encoding='utf-8') as f:
             json.dump(json.loads(output), f, ensure_ascii=False, indent=4)
         print("DONE. OUTPUT json file saved at %s/%s.json" % (dir_to_save, InfId))
@@ -406,7 +395,9 @@ def outputs(application_dir, dir_to_save):
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
 @click.option("--tosca_dir", help="Path to installed toscarizer", default=None)
-def tosca(application_dir, tosca_dir):
+@click.option("--domain", help="Path to read the new toscas", default=None)
+def tosca(application_dir, tosca_dir, domain):
+    update_app_dir(application_dir)
     current_path = os.path.abspath(os.getcwd())
     #os.chdir('%s' % tosca_dir)
     #command = "pip install ."
@@ -429,9 +420,15 @@ def tosca(application_dir, tosca_dir):
     stream = os.popen(tosca) 
     output = stream.read()
     print(output)
+    option_domain = ""
+    if None != domain:
+        option_domain = "--domain %s" % domain
+        
+
     if "Commands" in output:
         print("Toscarizer is installed")
-        command = "%s tosca --optimal --application_dir %s" % (tosca, app_dir)
+        
+        command = "%s tosca --optimal --application_dir %s %s" % (tosca, app_dir, option_domain)
         print("Toscarizer command: %s" % command)
         stream = os.popen(command)
         output = stream.read()
@@ -444,11 +441,12 @@ def tosca(application_dir, tosca_dir):
     else:
         print("Toscarizer is not installed")
     
-
 runtime_manager_cli.add_command(infras)
 runtime_manager_cli.add_command(difference)
 runtime_manager_cli.add_command(outputs)
 runtime_manager_cli.add_command(tosca)
+
+# main entry point.
 if __name__ == '__main__':
     runtime_manager_cli()
 
