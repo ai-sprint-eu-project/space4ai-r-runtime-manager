@@ -243,6 +243,11 @@ def difference(application_dir,
                 case = "D"
                 production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
                 print("DONE place partitioning of one component on the same infrastructure")
+            elif components_same == 2 and machines_same == 4:
+                print("We are at case F")
+                case = "F"
+                print("in processing")
+                production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
         else:
             print( "decrease the number of clusters")
 
@@ -383,10 +388,12 @@ def outputs(application_dir, dir_to_save):
         oscarui_endpoint = outputDict["outputs"]["oscarui_endpoint"]
         print("oscarui_endpoint:", oscarui_endpoint)
 
+
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
 @click.option("--tosca_dir", help="Path to installed toscarizer", default=None)
-def tosca(application_dir, tosca_dir):
+@click.option("--domain", help="Path to read the new toscas", default=None)
+def tosca(application_dir, tosca_dir, domain):
     update_app_dir(application_dir)
     current_path = os.path.abspath(os.getcwd())
     #os.chdir('%s' % tosca_dir)
@@ -410,9 +417,15 @@ def tosca(application_dir, tosca_dir):
     stream = os.popen(tosca) 
     output = stream.read()
     print(output)
+    option_domain = ""
+    if None != domain:
+        option_domain = "--domain %s" % domain
+        
+
     if "Commands" in output:
         print("Toscarizer is installed")
-        command = "%s tosca --optimal --application_dir %s" % (tosca, app_dir)
+        
+        command = "%s tosca --optimal --application_dir %s %s" % (tosca, app_dir, option_domain)
         print("Toscarizer command: %s" % command)
         stream = os.popen(command)
         output = stream.read()
@@ -424,7 +437,7 @@ def tosca(application_dir, tosca_dir):
             print("NEW TOSCAS: There has been a problem to generated the new toscas")
     else:
         print("Toscarizer is not installed")
-
+    
 runtime_manager_cli.add_command(infras)
 runtime_manager_cli.add_command(difference)
 runtime_manager_cli.add_command(outputs)

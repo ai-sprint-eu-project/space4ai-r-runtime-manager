@@ -497,23 +497,31 @@ def mix_toscas(correct_name, toscas_old, tosca_new, application_dir, case):
         oscar_service_old = toscas_old[correct_name]["topology_template"]["outputs"]["oscar_service_url"]["value"]["get_attribute"][0] 
         oscar_service_new = tosca_new["topology_template"]["outputs"]["oscar_service_url"]["value"]["get_attribute"][0] 
         tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["env_variables"]["KCI"] = toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["env_variables"]["KCI"]
-        if len(tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["output"]) > len(toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["output"]):
-            i  = 0
-            cluster_name = toscas_old[tosca_new["component_name"]]["topology_template"]["inputs"]["cluster_name"]["default"]
-            tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["output"] = toscas_old[tosca_new["component_name"]]["topology_template"]["node_templates"][oscar_service_new]["properties"]["output"]
-            for output in tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["output"]:
-                if output["storage_provider"] != "minio":
-                    tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["output"][i]["storage_provider"] = "minio.%s" % (cluster_name)
-                i += 1
+        # if len(tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["output"]) > len(toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["output"]):
+        i  = 0
+        cluster_name = toscas_old[tosca_new["component_name"]]["topology_template"]["inputs"]["cluster_name"]["default"]
+        tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["output"] = toscas_old[tosca_new["component_name"]]["topology_template"]["node_templates"][oscar_service_new]["properties"]["output"]
+        #HERE
+        for output in tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["output"]:
+            print(output)
+            print(i)
+            if output["storage_provider"] != "minio":
+                print(tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["output"])
+                tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["output"][i]["storage_provider"] = "minio.%s" % (cluster_name)
+            i += 1
+        if "storage_providers" in tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]:
             tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["storage_providers"].pop("minio", None)
-            tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["storage_providers"]["minio"] = {
-                cluster_name:{
-                    "access_key": "minio",
-                    "endpoint": "https://minio.%s.%s" % (cluster_name, tosca_new["topology_template"]["inputs"]["domain_name"]["default"]),
-                    "region": "us-east-1",
-                    "secret_key": toscas_old[tosca_new["component_name"]]["topology_template"]["inputs"]["minio_password"]["default"],   
-                }
+        else:
+            tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["storage_providers"] =  {}
+        
+        tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["storage_providers"]["minio"] = {
+            cluster_name:{
+                "access_key": "minio",
+                "endpoint": "https://minio.%s.%s" % (cluster_name, tosca_new["topology_template"]["inputs"]["domain_name"]["default"]),
+                "region": "us-east-1",
+                "secret_key": toscas_old[tosca_new["component_name"]]["topology_template"]["inputs"]["minio_password"]["default"],   
             }
+        }
         tosca_new["topology_template"]["node_templates"][oscar_service_new]["properties"]["script"] = "%s/aisprint/designs/%s/base/script.sh" % (application_dir, tosca_new["component_name"])
     elif case == "A" or case == "D" or case == "E":
         tosca_new["topology_template"]["inputs"] = copy.deepcopy(toscas_old[correct_name]["topology_template"]["inputs"])
@@ -521,8 +529,11 @@ def mix_toscas(correct_name, toscas_old, tosca_new, application_dir, case):
         oscar_service_new = tosca_new["topology_template"]["outputs"]["oscar_service_url"]["value"]["get_attribute"][0] 
         for item, values in tosca_new["topology_template"]["node_templates"].items():
             if "oscar_service_" in item:
+                print("ITEM : " + item)
+                print("CORRECT NAME: "+ correct_name)
+                print( "Service OLD: " + oscar_service_old)
                 tosca_new["topology_template"]["node_templates"][item]["properties"]["env_variables"]["KCI"] = toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["env_variables"]["KCI"]
-                if len(tosca_new["topology_template"]["node_templates"][item]["properties"]["output"]) > 1:
+                if len(tosca_new["topology_template"]["node_templates"][item]["properties"]["output"]) >= 1:
                     cluster_name = toscas_old[correct_name]["topology_template"]["inputs"]["cluster_name"]["default"]
                     for output_new in tosca_new["topology_template"]["node_templates"][item]["properties"]["output"]:
                         for output_old in toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["output"]:
@@ -530,6 +541,31 @@ def mix_toscas(correct_name, toscas_old, tosca_new, application_dir, case):
                                 output_new["storage_provider"] = output_old["storage_provider"]
                                 tosca_new["topology_template"]["node_templates"][item]["properties"]["storage_providers"] = copy.deepcopy(toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["storage_providers"])
                 tosca_new["topology_template"]["node_templates"][item]["properties"]["script"] = "%s/aisprint/designs/%s/base/script.sh" % (application_dir, tosca_new["topology_template"]["node_templates"][item]["properties"]["name"])
+    elif case == "F":
+        tosca_new["topology_template"]["inputs"] = copy.deepcopy(toscas_old[correct_name]["topology_template"]["inputs"])
+        oscar_service_old = toscas_old[correct_name]["topology_template"]["outputs"]["oscar_service_url"]["value"]["get_attribute"][0] 
+        oscar_service_new = tosca_new["topology_template"]["outputs"]["oscar_service_url"]["value"]["get_attribute"][0] 
+        for item, values in tosca_new["topology_template"]["node_templates"].items():
+            if "oscar_service_" in item:
+                print("ITEM : " + item)
+                print("CORRECT NAME: "+ correct_name)
+                print( "Service OLD: " + oscar_service_old)
+                tosca_new["topology_template"]["node_templates"][item]["properties"]["env_variables"]["KCI"] = toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["env_variables"]["KCI"]
+                tosca_new["topology_template"]["node_templates"][item]["properties"]["output"][0]["storage_provider"] = "minio"
+                tosca_new["topology_template"]["node_templates"][item]["properties"].pop("storage_providers", None)
+                # tosca_new["topology_template"]["node_templates"][item]["properties"]["storage_providers"]
+                # if len(tosca_new["topology_template"]["node_templates"][item]["properties"]["output"]) >= 1:
+                #     cluster_name = toscas_old[correct_name]["topology_template"]["inputs"]["cluster_name"]["default"]
+                #     for output_new in tosca_new["topology_template"]["node_templates"][item]["properties"]["output"]:
+                #         for output_old in toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["output"]:
+                #             if output_new["storage_provider"] != "minio" and output_old["storage_provider"] != "minio" :
+                #                 output_new["storage_provider"] = output_old["storage_provider"]
+                #                 tosca_new["topology_template"]["node_templates"][item]["properties"]["storage_providers"] = copy.deepcopy(toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["storage_providers"])
+                tosca_new["topology_template"]["node_templates"][item]["properties"]["script"] = "%s/aisprint/designs/%s/base/script.sh" % (application_dir, tosca_new["topology_template"]["node_templates"][item]["properties"]["name"])
+
+    print("-------------")
+    print("-------------")
+
     return tosca_new
 
 def component_name_verification(dic_old, dic_new):
@@ -561,11 +597,24 @@ def component_name_verification(dic_old, dic_new):
 def infrastructures_verification(dic_old, dic_new):
     count_machines = 0
     machines_same = -1
+    virtual_machines_old = []
+    virtual_machines_new = []
     for component_new, values_new in dic_new.items():
         for component_old, values_old in dic_old.items():
+            if values_old["executionLayer"] not in virtual_machines_old:
+                virtual_machines_old.append(values_old["executionLayer"])
             if values_new["executionLayer"] == values_old["executionLayer"]  and values_new["Containers"]["container1"]["selectedExecutionResource"] == values_old["Containers"]["container1"]["selectedExecutionResource"]:
                 count_machines += 1
+                print("*******")
+                print(count_machines)
                 values_new["infid"] = values_old["infid"]
+                if values_new["executionLayer"] not in virtual_machines_new:
+                    virtual_machines_new.append(values_new["executionLayer"])
+    print("old VM ")
+    print(virtual_machines_old)
+    print("new VM ")
+    print(virtual_machines_new) 
+    print((sorted(virtual_machines_old) == sorted(virtual_machines_new)))
             
     if count_machines == len(dic_old):
         # It is part of case C
@@ -576,9 +625,13 @@ def infrastructures_verification(dic_old, dic_new):
             machines_same = 3
             print("There are '%s' number of new infrastructures" % (len(dic_new)-count_machines))
     elif count_machines == len(dic_new):
-        # It is part of case A
-        machines_same = 2
         print("All the infrastructures in production_new are defined in production_old")
+        if sorted(virtual_machines_old) == sorted(virtual_machines_new):
+            # It is part of case A
+            machines_same = 2
+        else:
+            # It is part of case F
+            machines_same = 4
     elif count_machines == 0:
         machines_same = 0
         print("All the infrastructures are different")
@@ -619,16 +672,17 @@ def generate_fdl(tosca):
     elif "cluster_name" in tosca["topology_template"]["inputs"]:
         oscar_name = tosca["topology_template"]["inputs"]["cluster_name"]["default"]
     for node_name, node in tosca["topology_template"]["node_templates"].items():
-        if node["type"] == "tosca.nodes.aisprint.FaaS.Function":
-            service = get_oscar_service_json(node["properties"])
-            if "storage_providers" in service:
-                fdl["storage_providers"] = copy.deepcopy(service["storage_providers"])
-                service.pop("storage_providers", None)
-            service["inputs"] = copy.deepcopy(inputs)
-            if service["name"] not in done:
-                cluster_name = oscar_name if oscar_name else node_name
-                fdl["functions"]["oscar"].append({cluster_name: service})
-                done.append(service["name"])
+        if "oscar_service" in node_name:
+            if node["type"] == "tosca.nodes.aisprint.FaaS.Function":
+                service = get_oscar_service_json(node["properties"])
+                if "storage_providers" in service:
+                    fdl["storage_providers"] = copy.deepcopy(service["storage_providers"])
+                    service.pop("storage_providers", None)
+                service["inputs"] = copy.deepcopy(inputs)
+                if service["name"] not in done:
+                    cluster_name = oscar_name if oscar_name else node_name
+                    fdl["functions"]["oscar"].append({cluster_name: service})
+                    done.append(service["name"])
     return fdl
 
 def save_toscas_fdl(new_dir, toscas, case):
@@ -708,7 +762,7 @@ def oscar_cli(new_dir, fdls, case, remove_bucket):
     stream = os.popen(oscar_cli)
     output = stream.read()
     if "/bin/sh" not in stream.read():
-        if case == "A" or case == "C" or case == "D" or case == "E":
+        if case == "A" or case == "C" or case == "D" or case == "E" or case == "F":
             for fdl in fdls["functions"]["oscar"]:
                 identifier = list(fdl.keys())[0]
                 value = list(fdl.values())[0]
