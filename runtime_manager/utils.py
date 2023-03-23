@@ -31,8 +31,8 @@ def read_auth(im_auth_path):
     if not os.path.isfile(str(im_auth_path)):
         print("IM auth data does not exist (%s)" % im_auth_path)
         sys.exit(-1)
-    else:
-        print("IM auth: %s" % im_auth_path)
+    #else:
+        #print("IM auth: %s" % im_auth_path)
     with open(im_auth_path, 'r') as f:
         auth_data = f.read().replace("\n", "\\n") 
     return auth_data
@@ -97,6 +97,9 @@ def getInfraId(component, dir):
     infrasDict = yaml_as_dict(infraFile)
     infraId = ""
     found = False
+    d = dict()
+    d["infraId"] = ""
+    d["infraUrl"] = ""
     for k, v in infrasDict.items():
         #print(k, v)
         if (k==component):
@@ -105,11 +108,14 @@ def getInfraId(component, dir):
             #print("infra: ", infrasDict[k][0])
             #print("status: ", infrasDict[k][1])
             infraId = infrasDict[k][0].rsplit('/', 1)[-1]
+            #infraId = infrasDict[k][0]
+            d["infraId"] = infraId
+            d["infraUrl"] = infrasDict[k][0]
             #print("id: ", infraId)
             break
     if (False==found):
         print("No such component (%s) found in infras.dat", component)
-    return infraId
+    return d
 
 def getSelectedResources(component, dic):
     res = []
@@ -367,12 +373,12 @@ def searchNextCluster(fdls, cluster):
                     break
     return returnValue
 
-def updateTosca(new_comp, old_comp, new_dir, old_dir, case, delay=10, max_time=30):
+def updateTosca(new_comp, old_comp, new_dir, old_dir, case, delay=30, max_time=(60*60)):
     components_deployed = {}
     
-    infId = getInfraId(old_comp, old_dir)
+    dic_inf_id = getInfraId(old_comp, old_dir)
 
-    print(infId)
+    print(dic_inf_id)
 
     end = False
     cont = 0
@@ -383,7 +389,7 @@ def updateTosca(new_comp, old_comp, new_dir, old_dir, case, delay=10, max_time=3
                     max_count = 3
                     wait_time = 10
                     while not success and num < (max_count+1):
-                        success = im_interface.im_post_infrastructures_update(cfg.im_auth_path_def, "%s/production/ready-toscas/%s-ready.yaml" % (new_dir, new_comp), infId)
+                        success = im_interface.im_post_infrastructures_update(cfg.im_auth_path_def, "%s/production/ready-toscas/%s-ready.yaml" % (new_dir, new_comp), dic_inf_id['infraId'])
                         if not success:
                             if (num + 1) < (max_count+1):
                                 print("Error launching deployment for component %s. Waiting (%ssec) to retry (%s/%s)." % (new_comp, wait_time, num, max_count-1))
@@ -393,24 +399,32 @@ def updateTosca(new_comp, old_comp, new_dir, old_dir, case, delay=10, max_time=3
                                 end = True
                         num += 1
                         state = 'pending' if success else 'failed'
-                        components_deployed[new_comp] = (infId, state)
+                        components_deployed[new_comp] = (dic_inf_id['infraUrl'], state)
+                        print("infrastructure: %s - state: %s" % (dic_inf_id['infraUrl'], state))
         else:
             # Update deployment state
-            infId, state = components_deployed[new_comp]
+            print("Updating infrastructure state...")
+            success, state = im_interface.im_get_state(dic_inf_id['infraUrl'], cfg.im_auth_path_def)
+            if success:
+                components_deployed[new_comp] = dic_inf_id['infraUrl'], state
+                print("infrastructure: %s - state: %s" % (dic_inf_id['infraUrl'], state))
+                #end = True
+            else:
+                print("Cannot update infrastructure state!!!")
+
             if state in ['pending', 'running']:
                 pass
-                success, state = im_interface.im_get_state(infId, cfg.im_auth_path_def)
-                if success:
-                    components_deployed[new_comp] = infId, state
-            else:
+            elif state in ['unconfigured', 'configured']:
                 end = True
+                print("Infrastructure updated. Status %s - Elapsed: %d" % (state, cont))
+
         if not end:
             time.sleep(delay)
             cont += delay
 
     return components_deployed
 
-def deployTosca(comp, new_dir, case, delay=10, max_time=30):
+def deployTosca(comp, new_dir, case, delay=30, max_time=(60*60)):
     components_deployed = {}
     end = False
     cont = 0
@@ -432,15 +446,24 @@ def deployTosca(comp, new_dir, case, delay=10, max_time=30):
                         num += 1
                         state = 'pending' if success else 'failed'
                         components_deployed[comp] = (inf_id, state)
+                        print("infrastructure: %s - state: %s" % (inf_id, state))
         else:
             # Update deployment state
-            inf_id, state = components_deployed[comp]
+            print("Updating infrastructure state...")
+            success, state = im_interface.im_get_state(inf_id, cfg.im_auth_path_def)
+            if success:
+                components_deployed[comp] = inf_id, state
+                print("infrastructure: %s - state: %s" % (inf_id, state))
+                #end = True
+            else:
+                print("Cannot update infrastructure state!!!")
+
             if state in ['pending', 'running']:
                 pass
-                success, state = im_interface.im_get_state(inf_id, cfg.im_auth_path_def)
-                if success:
-                    components_deployed[comp] = inf_id, state
-                    end = True
+            elif state in ['unconfigured', 'configured']:
+                end = True
+                print("Infrastructure created. Status %s - Elapsed: %d" % (state, cont))
+
         if not end:
             time.sleep(delay)
             cont += delay
@@ -459,12 +482,12 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
         else:
             sameExecution, diff = compareExecution(production_old_dic, dic, component, se)
             if (True == sameExecution):
-                print("Same execution: Virtual resource action ...")
+                print("Same execution: nothing to do.")
             else:
                 print(diff)
                 value = list(list(diff.values())[0].values())[0]
                 nv = value['new_value']
-                print("Same execution with changed flavour: Updating infrastructure %s..." % getInfraId(se, old_dir))
+                print("Same execution with changed flavour: Updating infrastructure %s..." % getInfraId(se, old_dir).get('infraUrl'))
                 res = updateTosca(component, se, new_dir, old_dir, case)
                 print(yaml.safe_dump(res, indent=2))
 

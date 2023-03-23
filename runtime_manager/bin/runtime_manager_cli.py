@@ -26,6 +26,7 @@ from im_interface import  *
 from utils import *
 
 from config import update_app_dir
+import config as cfg
 
 @click.group()
 def runtime_manager_cli():
@@ -341,10 +342,10 @@ def difference(application_dir,
 @click.option("--dir_to_save", help="Path to save the toscas requested", default=None)
 def outputs(application_dir, dir_to_save):
     update_app_dir(application_dir)
-    responses = im_get_infrastructures(im_auth_path_def)
+    responses = im_get_infrastructures(cfg.im_auth_path_def)
     for response in responses:
         InfId = response.split("%s/infrastructures/" % im_url_def)[1]
-        output = im_get_outputs(InfId, im_auth_path_def)
+        output = im_get_outputs(InfId, cfg.im_auth_path_def)
         with open("%s/%s.json" % (dir_to_save, InfId), 'w', encoding='utf-8') as f:
             json.dump(json.loads(output), f, ensure_ascii=False, indent=4)
         print("DONE. OUTPUT json file saved at %s/%s.json" % (dir_to_save, InfId))
