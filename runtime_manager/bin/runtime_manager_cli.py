@@ -57,6 +57,8 @@ def difference(application_dir,
                swap_deployments,
                apply_diff,
                edge):
+    update_app_dir(application_dir)
+
     if None == old_dir:
         old_dir = application_dir+"/aisprint/deployments/base/im"
 
