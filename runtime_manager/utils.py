@@ -39,7 +39,7 @@ def read_auth(im_auth_path):
 
 def getInfras(application_dir, dir_to_save):
     #auth_path = "%s/%s" % (application_dir, im_auth_path_def)
-    print("----- %s" % cfg.im_auth_path_def)
+    #print("----- %s" % cfg.im_auth_path_def)
     responses = im_interface.im_get_infrastructures(cfg.im_auth_path_def)
     i = 0
     components_deployed = {}
@@ -155,7 +155,7 @@ def compareExecution(old_dic, new_dic, component_new, component_old):
     e0 = getExecution(component_new, new_dic)
     e1 = getExecution(component_old, old_dic)
 
-    returnDiff = DeepDiff(e0, e1)
+    returnDiff = DeepDiff(e1, e0)
 
     # if (oldExec == newExec and set(oldResources) == set(newResources)):
     #     returnValue = True
@@ -424,6 +424,40 @@ def updateTosca(new_comp, old_comp, new_dir, old_dir, case, delay=30, max_time=(
 
     return components_deployed
 
+def sameTosca(old_comp, old_dir, case, delay=30, max_time=(60*60)):
+    components_deployed = {}
+    
+    dic_inf_id = getInfraId(old_comp, old_dir)
+
+    print(dic_inf_id)
+
+    components_deployed[old_comp] = (dic_inf_id['infraUrl'], "unknown")
+
+    end = False
+    cont = 0
+    while not end and cont < max_time:
+        # Update deployment state
+        print("Updating infrastructure state...")
+        success, state = im_interface.im_get_state(dic_inf_id['infraUrl'], cfg.im_auth_path_def)
+        if success:
+            components_deployed[old_comp] = dic_inf_id['infraUrl'], state
+            print("infrastructure: %s - state: %s" % (dic_inf_id['infraUrl'], state))
+            #end = True
+        else:
+            print("Cannot update infrastructure state!!!")
+
+        if state in ['pending', 'running', 'unknown']:
+            pass
+        elif state in ['unconfigured', 'configured']:
+            end = True
+            print("Infrastructure updated. Status %s - Elapsed: %d" % (state, cont))
+
+        if not end:
+            time.sleep(delay)
+            cont += delay
+
+    return components_deployed
+
 def deployTosca(comp, new_dir, case, delay=30, max_time=(60*60)):
     components_deployed = {}
     end = False
@@ -473,6 +507,9 @@ def deployTosca(comp, new_dir, case, delay=30, max_time=(60*60)):
 def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_dir, case):
     rt = getResourcesType(component, dic)
     se = searchExecution(production_old_dic, dic, component)
+    print("********************")
+    print("%s" % (component))
+    print("********************")
     print(">Updating deployment of component --> %s (%s)" % (component, rt))
     if ("Virtual" == rt):
         if ("" == (se)):
@@ -482,14 +519,21 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
         else:
             sameExecution, diff = compareExecution(production_old_dic, dic, component, se)
             if (True == sameExecution):
-                print("Same execution: nothing to do.")
+                print("Same execution: nothing to do, just update infrastructure state.")
+                res = sameTosca(component, old_dir, case)
+                print(yaml.safe_dump(res, indent=2))
             else:
                 print(diff)
-                value = list(list(diff.values())[0].values())[0]
-                nv = value['new_value']
+                #value = list(list(diff.values())[0].values())[0]
+                #nv = value['new_value']
                 print("Same execution with changed flavour: Updating infrastructure %s..." % getInfraId(se, old_dir).get('infraUrl'))
                 res = updateTosca(component, se, new_dir, old_dir, case)
                 print(yaml.safe_dump(res, indent=2))
+
+        im_infras = "%s/infras.yaml" % new_dir
+        print("Savinng updated infras.yaml (%s)" % im_infras)
+        with open(im_infras, 'a+') as f:
+            yaml.safe_dump(res, f, indent=2)
 
     else:
         print("Phisical resource action ...")
@@ -497,6 +541,9 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
 def cleanComponentDeployment(dic, component, production_old_dic):
     rt = getResourcesType(component, dic)
     se = searchExecution(production_old_dic, dic, component)
+    print("********************")
+    print("%s" % (component))
+    print("********************")
     print(">Cleaning deployment of component --> %s (%s)" % (component, rt))
     if ("Virtual" == rt):
         if ("" == (se)):
@@ -514,6 +561,9 @@ def cleanDeletedComponent(dic_new, dic_old):
                     deletedComponent = False
                     break
         if (True == deletedComponent):
+            print("********************")
+            print("%s" % (component_old))
+            print("********************")
             print(">Deleting removed component --> %s] ...\n" %(component_old))
 
 def mix_toscas(correct_name, toscas_old, tosca_new, application_dir, case):
@@ -722,10 +772,10 @@ def save_toscas_fdl(new_dir, toscas, case):
          }
     clusters = []
     done = []
+
+    print("Saving tosca files in %s/production/ready-toscas/ ..." % (new_dir))
     #Create folder if it does not exist
-    if os.path.isdir("%s/production/ready-toscas" % (new_dir)):
-            print()
-    else:
+    if not os.path.isdir("%s/production/ready-toscas" % (new_dir)):
         os.makedirs("%s/production/ready-toscas" % (new_dir))
     
     #Clean folder if there are old files
@@ -733,6 +783,7 @@ def save_toscas_fdl(new_dir, toscas, case):
     if files != []:
         for file in files:
             os.remove(file)
+
     #Create FDL
     for name, tosca in toscas.items():
         fdl = generate_fdl(tosca)
@@ -765,6 +816,8 @@ def save_toscas_fdl(new_dir, toscas, case):
         with open("%s/production/ready-toscas/%s-ready.yaml" % (new_dir, name), 'w+') as f:
             yaml.safe_dump(tosca, f, indent=2)
     fdls["functions"]["oscar"] = clusters
+
+    print("Saving fdl file in %s/production/fdl/ ..." % new_dir)
     #Save FDL
     if not os.path.isdir("%s/production/fdl/" % new_dir):
             os.makedirs("%s/production/fdl/" % new_dir)
