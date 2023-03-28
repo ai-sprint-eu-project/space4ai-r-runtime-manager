@@ -67,7 +67,13 @@ def difference(application_dir,
         new_dir = application_dir+"/aisprint/deployments/optimal_deployment/im"
 
     if (True == update_infras):
-        getInfras(old_dir+"/..", application_dir+"/tmp")
+        getInfras(application_dir, old_dir)
+
+    # Creating empty infras.yaml
+    im_infras = "%s/infras.yaml" % new_dir
+    print("Put empty infras in new deployment (%s)" % im_infras)
+    with open(im_infras, 'w') as f:
+        pass
 
     if (True == edge):
          print("##################")
@@ -91,6 +97,7 @@ def difference(application_dir,
     # Parse old toscas.
     # files = glob.glob("%s/*.yaml" % old_dir)
     if DeepDiff(production_old_dic, production_new_dic, ignore_order=True) != {}:
+    #if 0:
         print("The 'Production deployment' files are different")
         files = list(set(glob.glob("%s/*.yaml" % old_dir)) - set(glob.glob("%s/infras.yaml" % old_dir)))
         production_old_dic["System"]["toscas"] = {}
@@ -254,6 +261,72 @@ def difference(application_dir,
         else:
             print( "decrease the number of clusters")
 
+            ######################################################################################################
+            ######################################################################################################
+            ######################################################################################################
+            # TO BE CHECKED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            ######################################################################################################
+            ######################################################################################################
+            ######################################################################################################
+            #Case B-GEN
+            print("We are at case B-GEN")
+            case = "B"
+
+            ####################
+            # UPDATE FDLs/TOSCAs
+            ####################
+            filedata = json.dumps(production_new_dic)
+            filedictionary = json.loads(filedata)
+
+            for component_new, values_new in production_new_dic["System"]["Components"].items():
+                #print("------\n %s \n" % production_new_dic)
+                tosca_new = production_new_dic["System"]["toscas"][values_new["name"]]
+
+                print("-----------------------")
+                print("--> %s" % component_new)
+                se = searchExecution(production_old_dic, production_new_dic, component_new)
+                if (se):
+                    tosca_old = production_old_dic["System"]["toscas"][se]
+                    #print((" >Component new runs on SAME CLUSTER than OLD"))
+                    nc = tosca_new["topology_template"]["inputs"]["cluster_name"]["default"]
+                    oc = tosca_old["topology_template"]["inputs"]["cluster_name"]["default"]
+                    print(" >NEW CLUSTER: %s " % (nc))
+                    print(" >OLD CLUSTER: %s (%s)" % (oc, se))
+                    # ACTION: EXCHANGE CLUSTER
+                    filedata = filedata.replace(nc, oc)
+                    filedictionary = json.loads(filedata)
+                    
+                    # ACTION: EXCHANGE PASSWORDS
+                    at_old = production_old_dic["System"]["toscas"][se]["topology_template"]["inputs"]["admin_token"]["default"]
+                    op_old = production_old_dic["System"]["toscas"][se]["topology_template"]["inputs"]["oscar_password"]["default"]
+                    mp_old = production_old_dic["System"]["toscas"][se]["topology_template"]["inputs"]["minio_password"]["default"]
+
+                    at_new = filedictionary["System"]["toscas"][component_new]["topology_template"]["inputs"]["admin_token"]["default"]
+                    op_new = filedictionary["System"]["toscas"][component_new]["topology_template"]["inputs"]["oscar_password"]["default"]
+                    mp_new = filedictionary["System"]["toscas"][component_new]["topology_template"]["inputs"]["minio_password"]["default"]
+
+                    filedata = filedata.replace(at_new, at_old)
+                    filedata = filedata.replace(op_new, op_old)
+                    filedata = filedata.replace(mp_new, mp_old)
+                    filedictionary = json.loads(filedata)
+
+                else:
+                    #print((" >Component new runs on DIFFERENT CLUSTER than OLD"))
+                    print(" >NEW CLUSTER: %s" % (tosca_new["topology_template"]["inputs"]["cluster_name"]["default"]))
+
+                # ACTION: REPLACE SCRIPTs
+                old_script = filedictionary["System"]["toscas"][component_new]["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["script"]
+                new_script = application_dir+"/aisprint/designs/"+ component_new + "/base/script.sh"
+                filedata = filedata.replace(old_script, new_script)
+                filedictionary = json.loads(filedata)
+
+                print(" >SCRIPT: %s" % (filedictionary["System"]["toscas"][component_new]["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["script"]))
+
+                print("-----------------------")
+                print("\n")
+
+                production_new_dic = filedictionary
+
         ##################
         # SAVE FDLs/TOSCAs
         ##################
@@ -307,6 +380,7 @@ def difference(application_dir,
         ###################
         # SAVE PRODUCTION FILES
         ###################
+        print("=====> SAVING PRODUCTION DICTIONARIES <=====")
         if not os.path.isdir("%s/production/" % old_dir):
             os.makedirs("%s/production/" % old_dir)
         if not os.path.isdir("%s/production/" % new_dir):
@@ -320,6 +394,8 @@ def difference(application_dir,
         # SWAP BASE and PROD
         ###################
         if (True == swap_deployments):
+            print("=====> SWAP DEPLOYMENTS <=====")
+
             if not os.path.isdir("%s/bck/" % application_dir):
                 os.makedirs("%s/bck/" % application_dir)
 
@@ -334,6 +410,27 @@ def difference(application_dir,
             src_path = "%s/aisprint/deployments/optimal_deployment" % application_dir
             dst_path = "%s/aisprint/deployments/base" % application_dir
             shutil.copytree(src_path, dst_path)
+
+            files = list(set(glob.glob("%s/*.yaml" % (old_dir))) - set(glob.glob("%s/infras.yaml" % (old_dir))))
+            #print(files)
+            for f in files:
+                os.remove(f)
+            #files = list(set(glob.glob("%s/*.yaml" % (old_dir))) - set(glob.glob("%s/infras.yaml" % (old_dir))))
+            #print(files)
+
+            tDir = "production/ready-toscas/"
+            files = list(set(glob.glob("%s/%s/*.yaml" % (old_dir, tDir))) - set(glob.glob("%s/%s/infras.yaml" % (old_dir, tDir))))
+            #print(files)
+            for f in files:
+                #os.rename(f, f.replace('-ready', '-xxx'))
+                shutil.copy(f, old_dir)
+            
+            files = list(set(glob.glob("%s/*.yaml" % (old_dir))) - set(glob.glob("%s/infras.yaml" % (old_dir))))
+            #print(files)
+            for f in files:
+                os.rename(f, f.replace('-ready', ''))
+            #files = list(set(glob.glob("%s/*.yaml" % (old_dir))) - set(glob.glob("%s/infras.yaml" % (old_dir))))
+            #print(files)
     else:
         print("The 'Production deployment' files are the same, none action will be performed")
 
