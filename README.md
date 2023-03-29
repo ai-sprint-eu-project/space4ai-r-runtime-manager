@@ -105,6 +105,26 @@ Follow the steps explained on [minio web page](https://min.io/docs/minio/linux/r
 
 Follow the steps explained on [anaconda web page](https://docs.anaconda.com/anaconda/install/linux/) 
 
+#### Flask server
+Go to the directory *runtime_manager*
+- Create *.flaskenv* with 
+```
+FLASK_APP=RM-interface.py
+FLASK_ENV=development
+FLASK_RUN_HOST=<HOST> (127.0.0.1 -- local for now)
+FLASK_RUN_PORT=<PORT>
+```
+- Verify that flask is installed with the code:
+```sh
+flask
+```
+it should print the options of flask.
+
+- If flask is installed you can run flask and the server will be activated
+```sh
+flask run
+```
+
 ### RUNTIME-MANAGER
 ```sh
 git clone https://gitlab.cefriel.it/ai-sprint/runtime-manager.git

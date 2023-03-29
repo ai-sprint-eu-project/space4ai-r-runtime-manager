@@ -5,4 +5,8 @@ generated_toscas/optimal/*.yaml
 tosca_files/*.yaml
 runtime_manager/__pycache__/
 runtime_manager/__pycache__/utils.cpython-39.pyc
-.flaskenv
+runtime_manager/.flaskenv
+config.yaml
+fdl-new.yaml
+fdl-blurry-faces-onnx.yaml
+fdl-mask-detector.yaml

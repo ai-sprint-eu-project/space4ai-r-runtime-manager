@@ -20,7 +20,7 @@ import glob
 import os
 import shutil
 from datetime import datetime
-
+sys.path.append("./")
 sys.path.append("../")
 from im_interface import  *
 from utils import *
