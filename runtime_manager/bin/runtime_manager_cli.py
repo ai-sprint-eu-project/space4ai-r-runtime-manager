@@ -610,51 +610,84 @@ def stopallbut1(application_dir):
         for vm_id, status in components_vms[cmp][1].items():
             print("%s: %s -> %s" % (cmp, vm_id, status))
 
-"""     for item, value in infras_file.items():
+@click.command()
+@click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
+def startall(application_dir):
+    update_app_dir(application_dir)
+
+    infras_file = yaml_as_dict("%s/aisprint/deployments/base/im/infras.yaml" % (application_dir))
+    #print(infras_file)
+    components_vms = {}
+    vm_status = {}
+    for item, value in infras_file.items():
         print("%s VMS:" % item)
         #print(value)
         #print(value[0])
         a=im_get_vms(value[0], cfg.im_auth_path_def)
         if(a[0]):
             s=a[1].split("\n")
-
-                    end = False
-                    cont = 0
-                    max_time=(60*60)
-                    delay=30
-                    while not end and cont < max_time:
-                        # Update deployment state
-                        print("Updating Vm state...")
-                        success, state=im_get_vm(vm, cfg.im_auth_path_def, "state")
-                        if success:
-                            print("vm_id: %s - state: %s" % (vm_id, state))
-                            #end = True
-                        else:
-                            print("Cannot update vm state!!!")
-
-                        if state in ['pending', 'configured']:
-                            pass
-                        elif state in ['stopped']:
-                            end = True
-                            print("vm updated. Status %s - Elapsed: %d" % (state, cont))
-
-                        if not end:
-                            time.sleep(delay)
-                            cont += delay
-
             for vm in s:
                 print(vm)
                 vm_id=int(vm.split("/")[-1:][0])
                 if vm_id>1:
-
+                    print("Starting %d" % vm_id)
+                    b=im_put_vm(vm, cfg.im_auth_path_def, "start")
+                    print(b)
+                    vm_status[vm_id] = "starting"
+            components_vms[item] = (value[0], vm_status)
         else:
-            print("-") """
+            print("-")
+
+    for cmp in components_vms:
+        print(components_vms[cmp][0])
+        for vm_id, status in components_vms[cmp][1].items():
+            print("%s: %s -> %s" % (cmp, vm_id, status))
+
+    end = False
+    cont = 0
+    max_time=(60*60)
+    delay=30
+    while not end and cont < max_time:
+        for cmp in components_vms:
+            #print(components_vms[cmp])
+            for vm_id, status in components_vms[cmp][1].items():
+                #print("%s: %s -> %s" % (cmp, vm_id, status))
+                # Update deployment state
+                print("Updating Vm state... (%s - %s)" % (cmp, vm_id))
+                success, state=im_get_vm(components_vms[cmp][0]+"/vms/"+str(vm_id), cfg.im_auth_path_def, "state")
+                if success:
+                    print("%s -- vm_id: %s - state: %s" % (cmp, vm_id, state))
+                    components_vms[cmp][1][vm_id] = state
+                else:
+                    print("Cannot update vm state!!!")
+        for cmp in components_vms:
+            print(components_vms[cmp])
+            for vm_id, status in components_vms[cmp][1].items():
+                if status in ['pending', 'starting']:
+                    end = False
+                    break
+                elif status in ['configured']:
+                    end = True
+            else:
+                continue
+            break
+
+        if not end:
+            time.sleep(delay)
+            cont += delay
+    
+    print("vms updated. Elapsed: %d" % (cont))
+    for cmp in components_vms:
+        print(components_vms[cmp][0])
+        for vm_id, status in components_vms[cmp][1].items():
+            print("%s: %s -> %s" % (cmp, vm_id, status))
 
 runtime_manager_cli.add_command(infras)
 runtime_manager_cli.add_command(difference)
 runtime_manager_cli.add_command(outputs)
 runtime_manager_cli.add_command(tosca)
 runtime_manager_cli.add_command(stopallbut1)
+runtime_manager_cli.add_command(startall)
 
 # main entry point.
 if __name__ == '__main__':
