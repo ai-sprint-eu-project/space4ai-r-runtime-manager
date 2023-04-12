@@ -49,4 +49,5 @@ dependencies:
     - deepdiff==6.2.1
     - ordered-set==4.1.0
     - pyyaml==6.0
+    - python-crontab==2.7.1
 prefix: /home/bedoya/anaconda3/envs/runtime-manager

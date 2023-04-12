@@ -109,7 +109,7 @@ Follow the steps explained on [anaconda web page](https://docs.anaconda.com/anac
 Go to the directory *runtime_manager*
 - Create *.flaskenv* with 
 ```
-FLASK_APP=RM-interface.py
+FLASK_APP=RM_interface.py
 FLASK_ENV=development
 FLASK_RUN_HOST=<HOST> (127.0.0.1 -- local for now)
 FLASK_RUN_PORT=<PORT>
@@ -124,6 +124,16 @@ it should print the options of flask.
 ```sh
 flask run
 ```
+#### Crontab task
+To create a cron task of the file *monitor_interface.py*, go to the directory *runtime_manager* and execute the command
+```sh
+python3 schedule_cron.py
+```
+To see if the task was schedule correctly, write the command 
+```sh
+crontab -l
+```
+Note: For now, it is programmed to make request to the flask server
 
 ### RUNTIME-MANAGER
 ```sh

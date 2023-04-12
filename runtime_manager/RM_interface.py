@@ -40,8 +40,10 @@ def im_post_infrastructures():
         return False, str(ex)
 
 def runtime_manager_cli():
+    """
     runtime_cli = "python3 %s --help" % (runtime_cli_cmd)
     stream = os.popen(runtime_cli)
     output = stream.read()
     print(output)
-    return output
+    """
+    return "HELL YEAH!"
