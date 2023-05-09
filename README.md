@@ -112,11 +112,11 @@ Go to the directory *runtime_manager*
 FLASK_APP=RM_interface.py
 FLASK_ENV=development
 FLASK_RUN_HOST=<HOST> (127.0.0.1 -- local for now)
-FLASK_RUN_PORT=<PORT>
+FLASK_RUN_PORT=<PORT> (5000 by default)
 ```
 - Verify that flask is installed with the code:
 ```sh
-flask
+flask -e
 ```
 it should print the options of flask.
 
@@ -140,7 +140,7 @@ Note: For now, it is programmed to make request to the flask server
 git clone https://gitlab.cefriel.it/ai-sprint/runtime-manager.git
 cd runtime-manager/
 ```
-#### Set up python enviroment
+#### Set up with python enviroment
 It is necessary to create the enviroment and activate it to properly work with the runtime manager.
 
 To create the enviroment from RUNTIME-MANAGER root folder:
@@ -154,6 +154,13 @@ conda activate runtime-manager
 To deactivate enviroment (if needed):
 ```sh
 conda deactivate
+```
+
+#### Set up with python requirements.txt
+Install libraries 
+
+```sh
+pip install -r /requirements.txt
 ```
 
 #### Check everything is installed corerctly
