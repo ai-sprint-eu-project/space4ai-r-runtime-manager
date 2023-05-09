@@ -10,3 +10,5 @@ config.yaml
 fdl-new.yaml
 fdl-blurry-faces-onnx.yaml
 fdl-mask-detector.yaml
+requirements2.txt
+translate.py
