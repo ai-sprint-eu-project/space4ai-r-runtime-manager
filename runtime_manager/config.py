@@ -25,11 +25,11 @@ def update_app_dir(dir):
     global im_auth_path_def
     app_dir = dir
     im_auth_path_def = app_dir + "/im/auth.dat"
-    print("\n====================================")
+    print("\n============================================")
     print("app_dir: %s" % app_dir)
     print("im_auth_path_def: %s" % im_auth_path_def)
     print("im_url_def: %s" % im_url_def)
     print("oscar_cli_cmd: %s" % oscar_cli_cmd)
     print("minio_cli_cmd: %s" % minio_cli_cmd)
     print("runtime_cli_cmd: %s" % runtime_cli_cmd)
-    print("====================================\n")
+    print("============================================\n")

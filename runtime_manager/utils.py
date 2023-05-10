@@ -102,6 +102,8 @@ def getInfraId(component, dir):
     d["infraUrl"] = ""
     for k, v in infrasDict.items():
         #print(k, v)
+        print("\n component: " + component)
+        print("\n k : " + k)
         if (k==component):
             found = True
             #print("component: ", k)
@@ -114,7 +116,7 @@ def getInfraId(component, dir):
             #print("id: ", infraId)
             break
     if (False==found):
-        print("No such component (%s) found in infras.dat", component)
+        print("No such component (%s) found in infras.yaml" % component)
     return d
 
 def getSelectedResources(component, dic):
@@ -531,7 +533,7 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
                 print(yaml.safe_dump(res, indent=2))
 
         im_infras = "%s/infras.yaml" % new_dir
-        print("Savinng updated infras.yaml (%s)" % im_infras)
+        print("Saving updated infras.yaml (%s)" % im_infras)
         with open(im_infras, 'a+') as f:
             yaml.safe_dump(res, f, indent=2)
 
@@ -604,9 +606,11 @@ def mix_toscas(correct_name, toscas_old, tosca_new, application_dir, case):
         oscar_service_new = tosca_new["topology_template"]["outputs"]["oscar_service_url"]["value"]["get_attribute"][0] 
         for item, values in tosca_new["topology_template"]["node_templates"].items():
             if "oscar_service_" in item:
+                print("============================================")
                 print("ITEM : " + item)
                 print("CORRECT NAME: "+ correct_name)
                 print( "Service OLD: " + oscar_service_old)
+                print("============================================\n")
                 tosca_new["topology_template"]["node_templates"][item]["properties"]["env_variables"]["KCI"] = toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["env_variables"]["KCI"]
                 if len(tosca_new["topology_template"]["node_templates"][item]["properties"]["output"]) >= 1:
                     cluster_name = toscas_old[correct_name]["topology_template"]["inputs"]["cluster_name"]["default"]
@@ -622,9 +626,11 @@ def mix_toscas(correct_name, toscas_old, tosca_new, application_dir, case):
         oscar_service_new = tosca_new["topology_template"]["outputs"]["oscar_service_url"]["value"]["get_attribute"][0] 
         for item, values in tosca_new["topology_template"]["node_templates"].items():
             if "oscar_service_" in item:
+                print("============================================")
                 print("ITEM : " + item)
                 print("CORRECT NAME: "+ correct_name)
-                print( "Service OLD: " + oscar_service_old)
+                print( "SERVICE OLD: " + oscar_service_old)
+                print("============================================\n")
                 tosca_new["topology_template"]["node_templates"][item]["properties"]["env_variables"]["KCI"] = toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["env_variables"]["KCI"]
                 tosca_new["topology_template"]["node_templates"][item]["properties"]["output"][0]["storage_provider"] = "minio"
                 tosca_new["topology_template"]["node_templates"][item]["properties"].pop("storage_providers", None)
@@ -637,9 +643,6 @@ def mix_toscas(correct_name, toscas_old, tosca_new, application_dir, case):
                 #                 output_new["storage_provider"] = output_old["storage_provider"]
                 #                 tosca_new["topology_template"]["node_templates"][item]["properties"]["storage_providers"] = copy.deepcopy(toscas_old[correct_name]["topology_template"]["node_templates"][oscar_service_old]["properties"]["storage_providers"])
                 tosca_new["topology_template"]["node_templates"][item]["properties"]["script"] = "%s/aisprint/designs/%s/base/script.sh" % (application_dir, tosca_new["topology_template"]["node_templates"][item]["properties"]["name"])
-
-    print("-------------")
-    print("-------------")
 
     return tosca_new
 
