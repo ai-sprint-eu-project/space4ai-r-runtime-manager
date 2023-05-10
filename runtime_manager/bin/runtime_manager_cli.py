@@ -176,20 +176,20 @@ def difference(application_dir,
                 print("We are in case E")
                 case = "E"
                 production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
-                print("DONE place partitioning of one component on the same infrastructure")
+                print("DONE place partitioning of one component on the same infrastructure \n")
         elif len(production_old_dic["System"]["Components"]) < len(production_new_dic["System"]["Components"]):
             print( "Increase the number of clusters")
             components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
             machines_same = infrastructures_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])
             if components_same == 2 and machines_same == 2:
                 #Case A
-                print("We are at case A")
+                print("We are at case A \n")
                 case = "A"
                 production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
-                print("DONE place partitioning of one component on the same infrastructure")
+                print("DONE place partitioning of one component on the same infrastructure \n")
             elif components_same == 2 and machines_same == 3:
                 #Case B
-                print("We are at case B")
+                print("We are at case B \n")
                 case = "B"
 
                 ####################
@@ -249,12 +249,12 @@ def difference(application_dir,
 
             elif components_same == 3 and machines_same == 2:
                 #Case D
-                print("We are at case D")
+                print("We are at case D \n")
                 case = "D"
                 production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
-                print("DONE place partitioning of one component on the same infrastructure")
+                print("DONE place partitioning of one component on the same infrastructure\n")
             elif components_same == 2 and machines_same == 4:
-                print("We are at case F")
+                print("We are at case F \n")
                 case = "F"
                 print("in processing")
                 production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
@@ -269,7 +269,7 @@ def difference(application_dir,
             ######################################################################################################
             ######################################################################################################
             #Case B-GEN
-            print("We are at case B-GEN")
+            print("We are at case B-GEN \n")
             case = "B"
 
             ####################
