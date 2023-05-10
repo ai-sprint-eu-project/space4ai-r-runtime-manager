@@ -178,7 +178,7 @@ def difference(application_dir,
                 production_new_dic["System"]["toscas"] = iteration_toscas(production_old_dic, production_new_dic, application_dir, case)
                 print("DONE place partitioning of one component on the same infrastructure")
         elif len(production_old_dic["System"]["Components"]) < len(production_new_dic["System"]["Components"]):
-            print( "increase the number of clusters")
+            print( "Increase the number of clusters")
             components_same = component_name_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])    
             machines_same = infrastructures_verification(production_old_dic["System"]["Components"],production_new_dic["System"]["Components"])
             if components_same == 2 and machines_same == 2:

@@ -680,16 +680,14 @@ def infrastructures_verification(dic_old, dic_new):
                 virtual_machines_old.append(values_old["executionLayer"])
             if values_new["executionLayer"] == values_old["executionLayer"]  and values_new["Containers"]["container1"]["selectedExecutionResource"] == values_old["Containers"]["container1"]["selectedExecutionResource"]:
                 count_machines += 1
-                print("*******")
-                print(count_machines)
                 values_new["infid"] = values_old["infid"]
                 if values_new["executionLayer"] not in virtual_machines_new:
                     virtual_machines_new.append(values_new["executionLayer"])
-    print("old VM ")
-    print(virtual_machines_old)
-    print("new VM ")
-    print(virtual_machines_new) 
-    print((sorted(virtual_machines_old) == sorted(virtual_machines_new)))
+    # print("old VM ")
+    # print(virtual_machines_old)
+    # print("new VM ")
+    # print(virtual_machines_new) 
+    # print((sorted(virtual_machines_old) == sorted(virtual_machines_new)))
             
     if count_machines == len(dic_old):
         # It is part of case C
