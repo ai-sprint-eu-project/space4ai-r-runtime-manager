@@ -114,6 +114,7 @@ FLASK_ENV=development
 FLASK_RUN_HOST=<HOST> (127.0.0.1 -- local for now)
 FLASK_RUN_PORT=<PORT> (5000 by default)
 ```
+
 - Verify that flask is installed with the code:
 ```sh
 flask -e
@@ -125,7 +126,7 @@ it should print the options of flask.
 flask run
 ```
 #### Crontab task
-To create a cron task of the file *monitor_interface.py*, go to the directory *runtime_manager* and execute the command
+To create a cron task of the file *monitor_interface.py*, go to the directory *runtime_manager* and execute the command 
 ```sh
 python3 schedule_cron.py
 ```
