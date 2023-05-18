@@ -43,7 +43,7 @@ def getInfras(application_dir, dir_to_save):
     responses = im_interface.im_get_infrastructures(cfg.im_auth_path_def)
     i = 0
     components_deployed = {}
-    infras_file = yaml_as_dict("%s/aisprint/deployments/base/im/infras.yaml" % (application_dir))
+    infras_file = yaml_as_dict("%s/aisprint/deployments/%s/im/infras.yaml" % (application_dir, cfg.current_folder))
     infras_old = []
     for item, value in infras_file.items():
         inf_old = value[0].split("/")[-1:][0]

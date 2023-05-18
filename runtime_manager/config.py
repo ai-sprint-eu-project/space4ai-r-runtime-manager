@@ -19,6 +19,7 @@ im_auth_path_def = app_dir + "/im/auth.dat"
 im_url_def = "https://appsgrycap.i3m.upv.es:31443/im"
 oscar_cli_cmd = "~/go/bin/oscar-cli"
 minio_cli_cmd = "~/minio-binaries/mc"
+current_folder = "current"
 
 def update_app_dir(dir):
     global app_dir
