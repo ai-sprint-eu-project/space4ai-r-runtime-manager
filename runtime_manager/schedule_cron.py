@@ -8,7 +8,7 @@ stream = os.popen(command)
 python_command = stream.read().split("\n")[0]
 
 #Crontab definition
-empty_cron = CronTab(user = True)
+empty_cron = CronTab(user = "root")
 
 command = '%s %s/monitor_interface.py' % (python_command, current_path)
 

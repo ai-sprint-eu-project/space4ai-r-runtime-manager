@@ -1,13 +1,12 @@
-"""
 from datetime import datetime
 import os
 
 cwd=os.getcwd()
 
-with open("/home/virtuoso/Documents/aisprint/runtime-manager/test.txt","a") as f:
+with open("/home/virtuoso/Documents/aisprint/runtime-manager/test.txt","a") as f: #cambiar path
     f.write("Accessed test1.py on " + str(datetime.now()) + "\n")
 
-"""
+
 
 import requests
 
