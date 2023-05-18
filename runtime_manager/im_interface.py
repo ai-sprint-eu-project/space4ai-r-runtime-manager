@@ -47,6 +47,16 @@ def im_get_outputs(id, im_auth_path_def):
     except Exception as ex:
         print(str(ex))
         return False, str(ex)
+    
+def im_get_outputs_from_url(url, im_auth_path_def):
+    auth_data = read_auth(im_auth_path_def)
+    headers = {"Authorization": auth_data}
+    try:
+        resp = requests.request("GET","%s/outputs" % (url), headers = headers)
+        return resp.text
+    except Exception as ex:
+        print(str(ex))
+        return False, str(ex)
 
 def im_post_infrastructures(im_auth_path_def, tosca):
     auth_data = read_auth(im_auth_path_def)

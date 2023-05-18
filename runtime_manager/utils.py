@@ -245,8 +245,16 @@ def searchRoot(dic):
     returnValue = ""
     for component_new, values_new in dic["System"]["toscas"].items():
         clu = values_new["topology_template"]["inputs"]["cluster_name"]["default"]
-        if len(values_new["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["input"]) == 1:
+        input_path = values_new["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["input"][0]["path"]
+        #print("xxxxxx %s" % component_new, input_path)
+        #print("------ %s" % component_new+"/input")
+        
+        if (input_path == component_new+"/input"):
             returnValue = component_new
+
+        #if len(values_new["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["input"]) == 1:
+        #    returnValue = component_new
+
         # root = True
         # for component_new2, values_new2 in dic["System"]["toscas"].items():
 
