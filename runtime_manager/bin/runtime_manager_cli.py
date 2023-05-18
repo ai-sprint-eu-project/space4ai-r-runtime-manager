@@ -40,7 +40,7 @@ def runtime_manager_cli():
 def infras(application_dir, dir_to_save):
     update_app_dir(application_dir)
     if None ==  dir_to_save:
-        dir_to_save = application_dir + "/aisprint/deployments/base/im"
+        dir_to_save = application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"
     getInfras(application_dir, dir_to_save)
 
 @click.command()
@@ -48,7 +48,7 @@ def infras(application_dir, dir_to_save):
 @click.option("--old_dir", help="Path to read the old toscas", default=None)
 @click.option("--new_dir", help="Path to read the new toscas", default=None)
 @click.option("--update_infras", is_flag = True, help="Enable the update of the infras at the start", default=False)
-@click.option("--swap_deployments", is_flag = True, help="Enable the swap of base and optimal deployments", default=False)
+@click.option("--swap_deployments", is_flag = True, help="Enable the swap of current and optimal deployments", default=False)
 @click.option("--apply_diff", is_flag = True, help="Apply calculated differences", default=False)
 @click.option("--remove_bucket", is_flag = True,  help="Flag to remove buckets from minio")
 @click.option("--edge", is_flag = True, help="Rm running on edge", default=False)
@@ -63,7 +63,7 @@ def difference(application_dir,
     update_app_dir(application_dir)
 
     if None == old_dir:
-        old_dir = application_dir+"/aisprint/deployments/base/im"
+        old_dir = application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"
 
     if None == new_dir:
         new_dir = application_dir+"/aisprint/deployments/optimal_deployment/im"
@@ -87,7 +87,7 @@ def difference(application_dir,
          print("###################")
 
     # Processing production files
-    production_old_dic = yaml_as_dict("%s/aisprint/deployments/base/production_deployment.yaml" % (application_dir))
+    production_old_dic = yaml_as_dict("%s/aisprint/deployments/%s/production_deployment.yaml" % (application_dir, cfg.current_folder))
     production_new_dic = yaml_as_dict("%s/aisprint/deployments/optimal_deployment/production_deployment.yaml" % (application_dir))
 
     # Temporary production dictionary for internal use.
@@ -401,7 +401,7 @@ def difference(application_dir,
             if not os.path.isdir("%s/bck/" % application_dir):
                 os.makedirs("%s/bck/" % application_dir)
 
-            f_path = "%s/aisprint/deployments/base" % application_dir
+            f_path = "%s/aisprint/deployments/%s" % (application_dir, cfg.current_folder)
 
             now = datetime.now()
 
@@ -410,7 +410,7 @@ def difference(application_dir,
             os.rename(f_path, f_path + '_' + sn)
 
             src_path = "%s/aisprint/deployments/optimal_deployment" % application_dir
-            dst_path = "%s/aisprint/deployments/base" % application_dir
+            dst_path = "%s/aisprint/deployments/%s" % (application_dir, cfg.current_folder)
             shutil.copytree(src_path, dst_path)
 
             files = list(set(glob.glob("%s/*.yaml" % (old_dir))) - set(glob.glob("%s/infras.yaml" % (old_dir))))
@@ -545,7 +545,7 @@ def tosca(application_dir, tosca_dir, domain):
 def stopallbut1(application_dir):
     update_app_dir(application_dir)
 
-    infras_file = yaml_as_dict("%s/aisprint/deployments/base/im/infras.yaml" % (application_dir))
+    infras_file = yaml_as_dict("%s/aisprint/deployments/%s/im/infras.yaml" % (application_dir, cfg.current_folder))
     #print(infras_file)
     components_vms = {}
     vm_status = {}
@@ -617,7 +617,7 @@ def stopallbut1(application_dir):
 def startall(application_dir):
     update_app_dir(application_dir)
 
-    infras_file = yaml_as_dict("%s/aisprint/deployments/base/im/infras.yaml" % (application_dir))
+    infras_file = yaml_as_dict("%s/aisprint/deployments/%s/im/infras.yaml" % (application_dir, cfg.current_folder))
     #print(infras_file)
     components_vms = {}
     vm_status = {}
@@ -688,12 +688,12 @@ def startall(application_dir):
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
 def test(application_dir):
     update_app_dir(application_dir)
-    infras_file = yaml_as_dict("%s/aisprint/deployments/base/im/infras.yaml" % (application_dir))
+    infras_file = yaml_as_dict("%s/aisprint/deployments/%s/im/infras.yaml" % (application_dir, cfg.current_folder))
     print("Infra content:")
     print(yaml.safe_dump(infras_file, indent=2))
 
-    files = list(set(glob.glob("%s/*.yaml" % (application_dir+"/aisprint/deployments/base/im"))) - set(glob.glob("%s/infras.yaml" % (application_dir+"/aisprint/deployments/base/im"))))
-    pd = yaml_as_dict("%s/aisprint/deployments/base/production_deployment.yaml" % (application_dir))
+    files = list(set(glob.glob("%s/*.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"))) - set(glob.glob("%s/infras.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"))))
+    pd = yaml_as_dict("%s/aisprint/deployments/%s/production_deployment.yaml" % (application_dir, cfg.current_folder))
     pd["System"]["toscas"] = {}
     for one_file in files:
         name_component = one_file.split("/")[-1].split(".")[0]
