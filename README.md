@@ -136,6 +136,12 @@ crontab -l
 ```
 Note: For now, it is programmed to make request to the flask server
 
+#### Crontab task in docker container
+It is only necessary to execute the command 
+```sh
+cron
+```
+
 ### RUNTIME-MANAGER
 ```sh
 git clone https://gitlab.cefriel.it/ai-sprint/runtime-manager.git
