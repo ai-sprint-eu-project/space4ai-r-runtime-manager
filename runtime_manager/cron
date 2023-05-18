@@ -1,1 +1,1 @@
-*/5 * * * * /usr/bin/python3 /home/SPACE4AI-R/monitor.py
+* * * * * /usr/bin/python3 /home/SPACE4AI-R/runtime-manager/runtime_manager/monitor_interface.py
