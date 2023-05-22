@@ -25,6 +25,8 @@ sys.path.append("../")
 from im_interface import  *
 from utils import *
 
+import subprocess
+
 from config import update_app_dir
 import config as cfg
 
@@ -38,7 +40,7 @@ def runtime_manager_cli():
 def infras(application_dir, dir_to_save):
     update_app_dir(application_dir)
     if None ==  dir_to_save:
-        dir_to_save = application_dir + "/aisprint/deployments/base/im"
+        dir_to_save = application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"
     getInfras(application_dir, dir_to_save)
 
 @click.command()
@@ -46,7 +48,7 @@ def infras(application_dir, dir_to_save):
 @click.option("--old_dir", help="Path to read the old toscas", default=None)
 @click.option("--new_dir", help="Path to read the new toscas", default=None)
 @click.option("--update_infras", is_flag = True, help="Enable the update of the infras at the start", default=False)
-@click.option("--swap_deployments", is_flag = True, help="Enable the swap of base and optimal deployments", default=False)
+@click.option("--swap_deployments", is_flag = True, help="Enable the swap of current and optimal deployments", default=False)
 @click.option("--apply_diff", is_flag = True, help="Apply calculated differences", default=False)
 @click.option("--remove_bucket", is_flag = True,  help="Flag to remove buckets from minio")
 @click.option("--edge", is_flag = True, help="Rm running on edge", default=False)
@@ -61,7 +63,7 @@ def difference(application_dir,
     update_app_dir(application_dir)
 
     if None == old_dir:
-        old_dir = application_dir+"/aisprint/deployments/base/im"
+        old_dir = application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"
 
     if None == new_dir:
         new_dir = application_dir+"/aisprint/deployments/optimal_deployment/im"
@@ -85,7 +87,7 @@ def difference(application_dir,
          print("###################")
 
     # Processing production files
-    production_old_dic = yaml_as_dict("%s/aisprint/deployments/base/production_deployment.yaml" % (application_dir))
+    production_old_dic = yaml_as_dict("%s/aisprint/deployments/%s/production_deployment.yaml" % (application_dir, cfg.current_folder))
     production_new_dic = yaml_as_dict("%s/aisprint/deployments/optimal_deployment/production_deployment.yaml" % (application_dir))
 
     # Temporary production dictionary for internal use.
@@ -399,7 +401,7 @@ def difference(application_dir,
             if not os.path.isdir("%s/bck/" % application_dir):
                 os.makedirs("%s/bck/" % application_dir)
 
-            f_path = "%s/aisprint/deployments/base" % application_dir
+            f_path = "%s/aisprint/deployments/%s" % (application_dir, cfg.current_folder)
 
             now = datetime.now()
 
@@ -408,7 +410,7 @@ def difference(application_dir,
             os.rename(f_path, f_path + '_' + sn)
 
             src_path = "%s/aisprint/deployments/optimal_deployment" % application_dir
-            dst_path = "%s/aisprint/deployments/base" % application_dir
+            dst_path = "%s/aisprint/deployments/%s" % (application_dir, cfg.current_folder)
             shutil.copytree(src_path, dst_path)
 
             files = list(set(glob.glob("%s/*.yaml" % (old_dir))) - set(glob.glob("%s/infras.yaml" % (old_dir))))
@@ -441,7 +443,7 @@ def outputs(application_dir, dir_to_save):
     update_app_dir(application_dir)
     responses = im_get_infrastructures(cfg.im_auth_path_def)
     for response in responses:
-        InfId = response.split("%s/infrastructures/" % im_url_def)[1]
+        InfId = response.split("%s/infrastructures/" % cfg.im_url_def)[1]
         output = im_get_outputs(InfId, cfg.im_auth_path_def)
         with open("%s/%s.json" % (dir_to_save, InfId), 'w', encoding='utf-8') as f:
             json.dump(json.loads(output), f, ensure_ascii=False, indent=4)
@@ -543,7 +545,7 @@ def tosca(application_dir, tosca_dir, domain):
 def stopallbut1(application_dir):
     update_app_dir(application_dir)
 
-    infras_file = yaml_as_dict("%s/aisprint/deployments/base/im/infras.yaml" % (application_dir))
+    infras_file = yaml_as_dict("%s/aisprint/deployments/%s/im/infras.yaml" % (application_dir, cfg.current_folder))
     #print(infras_file)
     components_vms = {}
     vm_status = {}
@@ -615,7 +617,7 @@ def stopallbut1(application_dir):
 def startall(application_dir):
     update_app_dir(application_dir)
 
-    infras_file = yaml_as_dict("%s/aisprint/deployments/base/im/infras.yaml" % (application_dir))
+    infras_file = yaml_as_dict("%s/aisprint/deployments/%s/im/infras.yaml" % (application_dir, cfg.current_folder))
     #print(infras_file)
     components_vms = {}
     vm_status = {}
@@ -682,12 +684,60 @@ def startall(application_dir):
         for vm_id, status in components_vms[cmp][1].items():
             print("%s: %s -> %s" % (cmp, vm_id, status))
 
+@click.command()
+@click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
+def test(application_dir):
+    update_app_dir(application_dir)
+    infras_file = yaml_as_dict("%s/aisprint/deployments/%s/im/infras.yaml" % (application_dir, cfg.current_folder))
+    print("Infra content:")
+    print(yaml.safe_dump(infras_file, indent=2))
+
+    files = list(set(glob.glob("%s/*.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"))) - set(glob.glob("%s/infras.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"))))
+    pd = yaml_as_dict("%s/aisprint/deployments/%s/production_deployment.yaml" % (application_dir, cfg.current_folder))
+    pd["System"]["toscas"] = {}
+    for one_file in files:
+        name_component = one_file.split("/")[-1].split(".")[0]
+        tosca_new_dic = yaml_as_dict(one_file)
+        # tosca_new_dic = place_name(tosca_new_dic)
+        tosca_new_dic["component_name"] = name_component
+        # print(tosca_new_dic["component_name"])
+        pd["System"]["toscas"][name_component] = tosca_new_dic
+    rootComponent = searchNextComponent(pd, "")
+    print("Root component: %s\n" % rootComponent)
+    with open("x.yaml", 'w+') as f:
+            yaml.safe_dump(pd, f, indent=2)
+
+    for item, value in infras_file.items():
+        #print(item)
+        #print(value[0])
+        if(item == rootComponent):
+            output = im_get_outputs_from_url(value[0], cfg.im_auth_path_def)
+            print("%s FE ip: %s" % (item, yaml.safe_load(output)['outputs']['fe_node_ip']))
+            #print(yaml.safe_load(output)['outputs']['fe_node_creds']['token'])
+            with open("key_fe.pem", 'w') as f:
+                f.write(yaml.safe_load(output)['outputs']['fe_node_creds']['token'])
+            f.close()
+            run_cmd = subprocess.run(["chmod", "600", "key_fe.pem"])
+            
+            run_cmd = subprocess.run(["ssh", "-oStrictHostKeyChecking=no", "-i", "key_fe.pem", "cloudadm@"+yaml.safe_load(output)['outputs']['fe_node_ip'], "sudo", "kubectl", "get", "service", "ai-sprint-monit-api", "-n", "ai-sprint-monitoring"], capture_output=True, text=True)
+            #print("The exit code was: %d" % run_cmd.returncode)
+            out_2 = run_cmd.stdout.splitlines(True)[1].split(" ")
+            while("" in out_2):
+                out_2.remove("")
+            print("%s AMS IP: %s" % (item, out_2[2]))
+            run_cmd = subprocess.run(["ssh", "-oStrictHostKeyChecking=no", "-i", "key_fe.pem", "cloudadm@"+yaml.safe_load(output)['outputs']['fe_node_ip'], "curl", "http://"+out_2[2]+"/monitoring/throughput/"], capture_output=True, text=True)
+            #print("The exit code was: %d" % run_cmd.returncode)
+            out_3 = run_cmd.stdout
+            print("The throughput is: %s" % yaml.safe_load(out_3)['throughput'])
+            print("\n%s" % out_3)
+
 runtime_manager_cli.add_command(infras)
 runtime_manager_cli.add_command(difference)
 runtime_manager_cli.add_command(outputs)
 runtime_manager_cli.add_command(tosca)
 runtime_manager_cli.add_command(stopallbut1)
 runtime_manager_cli.add_command(startall)
+runtime_manager_cli.add_command(test)
 
 # main entry point.
 if __name__ == '__main__':
