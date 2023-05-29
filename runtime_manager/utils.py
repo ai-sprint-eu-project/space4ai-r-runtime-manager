@@ -461,7 +461,8 @@ def sameTosca(old_comp, old_dir, case, delay=30, max_time=(60*60)):
                 time.sleep(delay)
                 cont += delay
     else:
-        
+        components_deployed
+        components_deployed[old_comp] = "To-Be-Modified"
         print("Component does not exist in Infras.yaml, it can not be updated rigth now")
     return components_deployed
 
