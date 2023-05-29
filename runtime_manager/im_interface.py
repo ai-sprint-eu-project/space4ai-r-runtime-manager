@@ -105,7 +105,7 @@ def im_get_state(inf_id, im_auth_path_def):
     headers["Content-Type"] = "application/json"
     try:
         resp = requests.request("GET", "%s/state" % inf_id, headers=headers)
-        print(resp.request.url)
+        # print(resp.request.url)
         #print(resp.request.body)
         #print(resp.request.headers)
         #print(resp.text)
