@@ -451,9 +451,9 @@ def sameTosca(old_comp, old_dir, case, delay=30, max_time=(60*60)):
             else:
                 print("Cannot update infrastructure state!!!")
 
-            if state in ['pending', 'running', 'unknown']:
+            if state in ['pending', 'running']:
                 pass
-            elif state in ['unconfigured', 'configured']:
+            elif state in ['unconfigured', 'configured', 'unknown']:
                 end = True
                 print("Infrastructure updated. Status %s - Elapsed: %d" % (state, cont))
 
@@ -461,6 +461,7 @@ def sameTosca(old_comp, old_dir, case, delay=30, max_time=(60*60)):
                 time.sleep(delay)
                 cont += delay
     else:
+        
         print("Component does not exist in Infras.yaml, it can not be updated rigth now")
     return components_deployed
 
