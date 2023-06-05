@@ -101,9 +101,6 @@ def getInfraId(component, dir):
     d["infraId"] = ""
     d["infraUrl"] = ""
     for k, v in infrasDict.items():
-        #print(k, v)
-        print("\n component: " + component)
-        print("\n k : " + k)
         if (k==component):
             found = True
             #print("component: ", k)
@@ -438,34 +435,35 @@ def sameTosca(old_comp, old_dir, case, delay=30, max_time=(60*60)):
     components_deployed = {}
     
     dic_inf_id = getInfraId(old_comp, old_dir)
+    if bool(dic_inf_id["infraUrl"]):
+        print("Component exists in Infras.yaml")
+        components_deployed[old_comp] = (dic_inf_id['infraUrl'], "unknown")
+        end = False
+        cont = 0
+        while not end and cont < max_time:
+            # Update deployment state
+            print("Updating infrastructure state...")
+            success, state = im_interface.im_get_state(dic_inf_id['infraUrl'], cfg.im_auth_path_def)
+            if success:
+                components_deployed[old_comp] = dic_inf_id['infraUrl'], state
+                print("infrastructure: %s - state: %s" % (dic_inf_id['infraUrl'], state))
+                #end = True
+            else:
+                print("Cannot update infrastructure state!!!")
 
-    print(dic_inf_id)
+            if state in ['pending', 'running']:
+                pass
+            elif state in ['unconfigured', 'configured', 'unknown']:
+                end = True
+                print("Infrastructure updated. Status %s - Elapsed: %d" % (state, cont))
 
-    components_deployed[old_comp] = (dic_inf_id['infraUrl'], "unknown")
-
-    end = False
-    cont = 0
-    while not end and cont < max_time:
-        # Update deployment state
-        print("Updating infrastructure state...")
-        success, state = im_interface.im_get_state(dic_inf_id['infraUrl'], cfg.im_auth_path_def)
-        if success:
-            components_deployed[old_comp] = dic_inf_id['infraUrl'], state
-            print("infrastructure: %s - state: %s" % (dic_inf_id['infraUrl'], state))
-            #end = True
-        else:
-            print("Cannot update infrastructure state!!!")
-
-        if state in ['pending', 'running', 'unknown']:
-            pass
-        elif state in ['unconfigured', 'configured']:
-            end = True
-            print("Infrastructure updated. Status %s - Elapsed: %d" % (state, cont))
-
-        if not end:
-            time.sleep(delay)
-            cont += delay
-
+            if not end:
+                time.sleep(delay)
+                cont += delay
+    else:
+        components_deployed
+        components_deployed[old_comp] = ["To-Be-Modified"]
+        print("Component does not exist in Infras.yaml, it can not be updated rigth now")
     return components_deployed
 
 def deployTosca(comp, new_dir, case, delay=30, max_time=(60*60)):
