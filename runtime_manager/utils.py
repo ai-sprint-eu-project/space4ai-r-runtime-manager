@@ -25,6 +25,23 @@ import glob
 from config import im_url_def, oscar_cli_cmd, minio_cli_cmd
 import config as cfg
 
+def create_optimal_deployment(application_dir):
+    print(application_dir)
+    can_deployments = yaml_as_dict(application_dir + "/common_config/candidate_deployments.yaml")
+    can_resources = yaml_as_dict(application_dir + "/common_config/candidate_resources.yaml")
+    for components in can_deployments["Components"].values():
+        components["executionLayer"] = components["candidateExecutionLayers"][0]
+        components.pop("candidateExecutionLayers")
+        for container in components["Containers"].values():
+            container["selectedExecutionResource"] = container["candidateExecutionResources"][0]
+            container.pop("candidateExecutionResources")
+    can_resources["System"]["Components"] = can_deployments["Components"]
+    save_path = application_dir + "/aisprint/deployments/"+ cfg.current_folder +"/production_deployment.yaml"
+    with open(save_path, 'w+') as f:
+        yaml.safe_dump(can_resources, f, indent=2)
+    return 0
+
+
 def read_auth(im_auth_path):
     # if not im_auth and application_dir:
     #     im_auth = "%s/im/auth.dat" % application_dir

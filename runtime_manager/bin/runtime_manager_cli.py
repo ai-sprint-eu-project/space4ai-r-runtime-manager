@@ -62,6 +62,16 @@ def difference(application_dir,
                edge):
     update_app_dir(application_dir)
 
+    if os.path.exists(application_dir + "/aisprint/deployments/"  + cfg.current_folder):
+        print("The Current Deployment folder does exist")
+    else:
+        print("The Current Deployment folder does not exist, let's proceed with its creation")
+        shutil.copytree(application_dir + "/aisprint/deployments/base", application_dir + "/aisprint/deployments/" + cfg.current_folder)
+    
+    if not os.path.exists(application_dir + "/aisprint/deployments/"+ cfg.current_folder +"/production_deployment.yaml"):
+        print("production_deployment.yaml does not exist")
+        create_optimal_deployment(application_dir)
+    
     if None == old_dir:
         old_dir = application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"
 
