@@ -39,6 +39,7 @@ def create_optimal_deployment(application_dir):
     save_path = application_dir + "/aisprint/deployments/"+ cfg.current_folder +"/production_deployment.yaml"
     with open(save_path, 'w+') as f:
         yaml.safe_dump(can_resources, f, indent=2)
+    print("production_deployment.yaml is been created")
     return 0
 
 

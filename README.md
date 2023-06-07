@@ -204,6 +204,8 @@ The toscas will be saved at the folder *<APPLICATION DIR>/aisprint/deployments/o
 *--application_dir*: the root folder for AI-SPRINT application
 
 *--tosca_dir*: directory where toscarizer has been installed
+*--domain*: Domain that will be used for the deployment
+*--influxdb_token*: Influxdb token
 
 
 ##### Command: difference

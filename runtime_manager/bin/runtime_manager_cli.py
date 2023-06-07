@@ -504,8 +504,9 @@ def outputs(application_dir, dir_to_save):
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
 @click.option("--tosca_dir", help="Path to installed toscarizer", default=None)
-@click.option("--domain", help="Path to read the new toscas", default=None)
-def tosca(application_dir, tosca_dir, domain):
+@click.option("--domain", help="Domain that will be used for the deployment", default=None)
+@click.option("--influxdb_token", help="Influxdb token", default=None)
+def tosca(application_dir, tosca_dir, domain, influxdb_token):
     update_app_dir(application_dir)
     current_path = os.path.abspath(os.getcwd())
     #os.chdir('%s' % tosca_dir)
@@ -532,12 +533,15 @@ def tosca(application_dir, tosca_dir, domain):
     option_domain = ""
     if None != domain:
         option_domain = "--domain %s" % domain
-        
+
+    option_influx = ""
+    if None != influxdb_token:
+        option_influx = "--influxdb_token %s" % domain  
 
     if "Commands" in output:
         print("Toscarizer is installed")
         
-        command = "%s tosca --optimal --application_dir %s %s" % (tosca, app_dir, option_domain)
+        command = "%s tosca --optimal --application_dir %s %s %s" % (tosca, app_dir, option_domain, option_influx)
         print("Toscarizer command: %s" % command)
         stream = os.popen(command)
         output = stream.read()
