@@ -26,7 +26,6 @@ from config import im_url_def, oscar_cli_cmd, minio_cli_cmd
 import config as cfg
 
 def create_optimal_deployment(application_dir):
-    print(application_dir)
     can_deployments = yaml_as_dict(application_dir + "/common_config/candidate_deployments.yaml")
     can_resources = yaml_as_dict(application_dir + "/common_config/candidate_resources.yaml")
     for components in can_deployments["Components"].values():
@@ -110,6 +109,7 @@ def yaml_as_dict(my_file):
                 my_dict[key] = value
     return my_dict
 
+
 def getInfraId(component, dir):
     infraFile = "%s/infras.yaml" % dir
     infrasDict = yaml_as_dict(infraFile)
@@ -132,6 +132,21 @@ def getInfraId(component, dir):
             break
     if (False==found):
         print("No such component (%s) found in infras.yaml" % component)
+    return d
+
+def getInfraId_sameTosca(component, dir, dic):
+    infraFile = "%s/infras.yaml" % dir
+    infrasDict = yaml_as_dict(infraFile)
+    infraId = ""
+    found = False
+    d = dict()
+    d["infraId"] = ""
+    d["infraUrl"] = ""
+    for key, values in dic["System"]["Components"].items():
+        if component == key:
+            d["infraId"] = values["ref_infid"]["infraId"]
+            d["infraUrl"] = values["ref_infid"]["infraUrl"]
+            break
     return d
 
 def getSelectedResources(component, dic):
@@ -449,10 +464,9 @@ def updateTosca(new_comp, old_comp, new_dir, old_dir, case, delay=30, max_time=(
 
     return components_deployed
 
-def sameTosca(old_comp, old_dir, case, delay=30, max_time=(60*60)):
+def sameTosca(old_comp, old_dir, case, dic, delay=30, max_time=(60*60)):
     components_deployed = {}
-    
-    dic_inf_id = getInfraId(old_comp, old_dir)
+    dic_inf_id = getInfraId_sameTosca(old_comp, old_dir, dic)
     if bool(dic_inf_id["infraUrl"]):
         print("Component exists in Infras.yaml")
         components_deployed[old_comp] = (dic_inf_id['infraUrl'], "unknown")
@@ -468,6 +482,7 @@ def sameTosca(old_comp, old_dir, case, delay=30, max_time=(60*60)):
                 #end = True
             else:
                 print("Cannot update infrastructure state!!!")
+                print("Verify that the infrastructures INFID is well defined on " + old_dir +"/infras.yaml")
 
             if state in ['pending', 'running']:
                 pass
@@ -537,6 +552,8 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
     print("%s" % (component))
     print("********************")
     print(">Updating deployment of component --> %s (%s)" % (component, rt))
+
+    
     if ("Virtual" == rt):
         if ("" == (se)):
             print("Creating infrastructure ...")
@@ -546,7 +563,8 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
             sameExecution, diff = compareExecution(production_old_dic, dic, component, se)
             if (True == sameExecution):
                 print("Same execution: nothing to do, just update infrastructure state.")
-                res = sameTosca(component, old_dir, case)
+                res = sameTosca(component, old_dir, case, dic)
+                
                 print(yaml.safe_dump(res, indent=2))
             else:
                 print(diff)
@@ -708,6 +726,7 @@ def infrastructures_verification(dic_old, dic_new):
             if values_new["executionLayer"] == values_old["executionLayer"]  and values_new["Containers"]["container1"]["selectedExecutionResource"] == values_old["Containers"]["container1"]["selectedExecutionResource"]:
                 count_machines += 1
                 values_new["infid"] = values_old["infid"]
+                values_new["ref_infid"] = values_old["ref_infid"]
                 if values_new["executionLayer"] not in virtual_machines_new:
                     virtual_machines_new.append(values_new["executionLayer"])
     # print("old VM ")
