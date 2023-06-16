@@ -27,7 +27,7 @@ def infrastructures():
                 Throughput = json_body["Throughput"]
             else:
                 Throughput = None
-            return "the Throughput is: " + Throughput
+            return "the Throughput is: " + str(Throughput)
         else:
             return 'Content-Type not supported!' 
     else:
