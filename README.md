@@ -125,22 +125,17 @@ it should print the options of flask.
 ```sh
 flask run
 ```
-#### Crontab task
-To create a cron task of the file *monitor_interface.py*, go to the directory *runtime_manager* and execute the command 
-```sh
-python3 schedule_cron.py
-```
-To see if the task was schedule correctly, write the command 
-```sh
-crontab -l
-```
-Note: For now, it is programmed to make request to the flask server
 
 #### Crontab task in docker container
 It is only necessary to execute the command. By default, it will work every 5 minutes.
 ```sh
 cron
 ```
+To see if the task was schedule correctly, write the command 
+```sh
+crontab -l
+```
+Note: For now, it is programmed to make request to the flask server
 
 ### RUNTIME-MANAGER
 ```sh
@@ -204,6 +199,8 @@ The toscas will be saved at the folder *<APPLICATION DIR>/aisprint/deployments/o
 *--application_dir*: the root folder for AI-SPRINT application
 
 *--tosca_dir*: directory where toscarizer has been installed
+*--domain*: Domain that will be used for the deployment
+*--influxdb_token*: Influxdb token
 
 
 ##### Command: difference

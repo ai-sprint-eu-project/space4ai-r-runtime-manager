@@ -62,6 +62,20 @@ def difference(application_dir,
                edge):
     update_app_dir(application_dir)
 
+    if os.path.exists(application_dir + "/aisprint/deployments/"  + cfg.current_folder):
+        print("The Current Deployment folder does exist")
+    else:
+        print("The Current Deployment folder does not exist, let's proceed with its creation")
+        try:
+            shutil.copytree(application_dir + "/aisprint/deployments/base", application_dir + "/aisprint/deployments/" + cfg.current_folder)
+        except:
+            print("The files at '" + application_dir +"/aisprint/deployments/base/src ' could not be copied")
+        # shutil.copytree(application_dir + "/aisprint/deployments/base", application_dir + "/aisprint/deployments/" + cfg.current_folder)
+    
+    if not os.path.exists(application_dir + "/aisprint/deployments/"+ cfg.current_folder +"/production_deployment.yaml"):
+        print("production_deployment.yaml does not exist")
+        create_optimal_deployment(application_dir)
+    
     if None == old_dir:
         old_dir = application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"
 
@@ -118,7 +132,7 @@ def difference(application_dir,
                 if not("infid") in tosca_old_dic.keys():
                     tosca_old_dic["infid"] = "AlreadyProvisioned%s" % i
                     i += 1
-
+            
             print("============================================")
             print("Deployed component:      %s" % tosca_old_dic["component_name"])
             print("Deployed infrastructure: %s" % tosca_old_dic["infid"])
@@ -126,11 +140,15 @@ def difference(application_dir,
             print("Execution layer:         %s" % production_old_dic["System"]["Components"][tosca_old_dic["component_name"]]['executionLayer'] )
             print("Resources:               %s" % getSelectedResources(tosca_old_dic["component_name"], production_old_dic))
             print("============================================\n")
+
+            
             production_old_dic["System"]["toscas"][tosca_old_dic["component_name"]] = tosca_old_dic
+            infraId_sameTosca = getInfraId(tosca_old_dic["component_name"], old_dir)
             #ADD a component that overwrite the component "component1" for "component_name(blurryfaces or mask-detector)"
             if tosca_old_dic["component_name"] in production_old_dic["System"]["Components"]:
                 production_old_dic["System"]["Components"][tosca_old_dic["component_name"]]["infid"] = tosca_old_dic["infid"]
-        
+            production_old_dic["System"]["Components"][tosca_old_dic["component_name"]]["ref_infid"] = infraId_sameTosca
+
         # files = glob.glob("%s/*.yaml" % new_dir)
         files = list(set(glob.glob("%s/*.yaml" % new_dir)) - set(glob.glob("%s/infras.yaml" % new_dir)))
         production_new_dic["System"]["toscas"] = {}
@@ -494,8 +512,9 @@ def outputs(application_dir, dir_to_save):
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
 @click.option("--tosca_dir", help="Path to installed toscarizer", default=None)
-@click.option("--domain", help="Path to read the new toscas", default=None)
-def tosca(application_dir, tosca_dir, domain):
+@click.option("--domain", help="Domain that will be used for the deployment", default=None)
+@click.option("--influxdb_token", help="Influxdb token", default=None)
+def tosca(application_dir, tosca_dir, domain, influxdb_token):
     update_app_dir(application_dir)
     current_path = os.path.abspath(os.getcwd())
     #os.chdir('%s' % tosca_dir)
@@ -522,12 +541,15 @@ def tosca(application_dir, tosca_dir, domain):
     option_domain = ""
     if None != domain:
         option_domain = "--domain %s" % domain
-        
+
+    option_influx = ""
+    if None != influxdb_token:
+        option_influx = "--influxdb_token %s" % domain  
 
     if "Commands" in output:
         print("Toscarizer is installed")
         
-        command = "%s tosca --optimal --application_dir %s %s" % (tosca, app_dir, option_domain)
+        command = "%s tosca --optimal --application_dir %s %s %s" % (tosca, app_dir, option_domain, option_influx)
         print("Toscarizer command: %s" % command)
         stream = os.popen(command)
         output = stream.read()
