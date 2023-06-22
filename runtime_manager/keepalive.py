@@ -3,13 +3,16 @@ import os
 import requests
 
 keepalive_time_sec = 10
-hostname = "google.com" #example
-url = 'http://0.0.0.0:5000/keepalive'
+url = 'http://0.0.0.0:5001/keepalive'
 alive_missing_counter = 0
 alive_missing_max = 5
+role = os.getenv('S4AIR_ROLE')
+print("Role: %s" % role)
+
 async def display_date():
     global alive_missing_counter
     global alive_missing_max
+    global role
     while True:
         print("***")
         try:
@@ -19,11 +22,15 @@ async def display_date():
            alive_missing_counter = alive_missing_counter + 1
            if alive_missing_counter > alive_missing_max:
               print("PARTNER IS MISSING!!!!")
+              if "master" == role:
+                 print("Master is switching off all VMs but 1...")
+                 # TODO
+              else:
+                 print("Activating Slave...")
+                 # TODO
         else:
            print (resp.status_code)
            print(f"{url} is UP!")
-           #if (200 == resp.status_code):
-           #   print("XXXXXXXXXXX")
            alive_missing_counter = 0
         await asyncio.sleep(keepalive_time_sec)
 
