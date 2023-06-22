@@ -16,6 +16,12 @@ from config import runtime_cli_cmd
 #################
 # API functions #
 #################
+@app.route("/keepalive", methods=['GET'])
+def ka():
+    if request.method == 'GET':
+        return jsonify("ALIVE", 200)
+    else:
+        return jsonify("ERROR", 404)
 
 @app.route("/ams-alert", methods=['POST'])
 def infrastructures():
