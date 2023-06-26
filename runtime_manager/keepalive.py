@@ -82,6 +82,8 @@ def get_master_slave(application_dir):
     master_component = ""
     slave_component_url = ""
     master_component_url = ""
+    slave_im = ""
+    master_im = ""
 
     rootComponent = searchNextComponent(pd, "")
     while("" != rootComponent):
@@ -105,28 +107,45 @@ def get_master_slave(application_dir):
         if(item == slave_component):
             output = im_get_outputs_from_url(value[0], cfg.im_auth_path_def)
             slave_component_url = item, yaml.safe_load(output)['outputs']['oscar_service_url']
-            print("%s SLAVE OSCAR URL: %s\n" % slave_component_url)
+            print("SLAVE OSCAR URL: %s\n" % slave_component_url[1])
         if(item == master_component):
             output = im_get_outputs_from_url(value[0], cfg.im_auth_path_def)
             master_component_url = item, yaml.safe_load(output)['outputs']['oscar_service_url']
-            print("%s MASTER OSCAR URL: %s\n" % master_component_url)
+            print("MASTER OSCAR URL: %s" % master_component_url[1])
 
-    return (slave_component, slave_component_url[1], master_component, master_component_url[1])
+            for item, value in infras_file.items():
+               if master_component == item:
+                  master_im = value[0].split("/")[-1:][0]
+                  print("MASTER IM: %s" % master_im)
+                  break
+            print("%s MASTER FE ip: %s\n" % (item, yaml.safe_load(output)['outputs']['fe_node_ip']))
+
+    with open("key_fe.pem", 'w') as f:
+        f.write(yaml.safe_load(output)['outputs']['fe_node_creds']['token'])
+    f.close()
+    run_cmd = subprocess.run(["chmod", "600", "key_fe.pem"])
+    run_cmd = subprocess.run(["ssh", "-oStrictHostKeyChecking=no", "-i", "key_fe.pem", "cloudadm@"+yaml.safe_load(output)['outputs']['fe_node_ip'], "less", "/var/tmp/.im/"+master_im+"/oscar_front_conf.yml"], capture_output=True, text=True)
+    out_2 = run_cmd.stdout
+    if "" != out_2:
+        role = 'master'
+        print("CONFIG OSCAR: %s" % yaml.safe_load(out_2)[0]['vars']['dns_host'])
+    else:
+        role = 'slave'
+
+    return (slave_component, slave_component_url[1].replace('https://', ''), master_component, master_component_url[1].replace('https://', ''), role)
 
 
 ########################################################################
 
 
-s, su, m, mu = get_master_slave(sys.argv[1])
+s, su, m, mu, r = get_master_slave(sys.argv[1])
 
-print("-- %s\n --%s\n --%s\n --%s\n" %(s, su, m, mu))
+print(" --%s -->%s\n --%s -->%s\n --role -->%s\n" %(s, su, m, mu, r))
 
-if role is None:
-   role = 'master'
-elif "master" == role:
-    url = su.replace('https://', '')
+if "master" == role:
+    url = su
 else:
-    url = mu.replace('https://', '')
+    url = mu
 
 running = ("" != su)
 
