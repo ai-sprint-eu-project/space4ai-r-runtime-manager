@@ -1,12 +1,11 @@
 import asyncio
 import os
-import requests
 import subprocess
 import shutil
 import sys
 sys.path.append("./")
 sys.path.append("../")
-from im_interface import  *
+from im_interface import *
 from utils import *
 from config import update_app_dir
 import config as cfg
@@ -16,27 +15,6 @@ keepalive_time_sec = 10
 url_base = '0.0.0.0'
 alive_missing_counter = 0
 alive_missing_max = 5
-
-role = os.getenv('S4AIR_ROLE')
-print("Role: %s" % role)
-
-#url_master = os.getenv('S4AIR_MASTER_URL')
-#if url_master is None:
-#    url_master = url_base
-#print("Master url: %s" % url_master)
-
-#url_slave = os.getenv('S4AIR_SLAVE_URL')
-#if url_slave is None:
-#    url_slave = url_base
-#print("Slave url: %s" % url_slave)
-
-
-#if role is None:
-#   role = 'master'
-#elif "master" == role:
-#    url = url_master
-#else:
-#    url = url_slave
 
 ########################################################################
 def get_master_slave(application_dir):
@@ -140,6 +118,8 @@ def get_master_slave(application_dir):
 
 s, su, m, mu, r = get_master_slave(sys.argv[1])
 
+role = r
+
 print(" --%s -->%s\n --%s -->%s\n --role -->%s\n" %(s, su, m, mu, r))
 
 if "master" == role:
@@ -157,20 +137,17 @@ def setRmOpt(status):
     f.write(status)
     f.close()
 
-async def display_date():
+async def run_keep_alive():
     global alive_missing_counter
     global alive_missing_max
     global role
     global url
     global running
     vm_off = False
+    slave_activate = False
     while running:
         print("***")
         response = os.system("ping -c 1 " + url + " >/dev/null 2>&1")
-        #response = subprocess.check_output(["ping", "-c", "1", url])
-        #run_cmd = subprocess.run(["echo", url], capture_output=True, text=True)
-        #response = run_cmd.stdout
-        #print("PING: %s" %response)
         if response == 0:
            print(f"{url} is UP!")
            alive_missing_counter = 0
@@ -180,6 +157,9 @@ async def display_date():
                  vm_off = False
                  print("Activating Master...")
                  setRmOpt('ON')
+           elif ("slave" == role) and (True == slave_activate):
+                 print("Dectivating Slave...")
+                 slave_activate = False
         else:
            print(f"{url} is down!")
            alive_missing_counter = alive_missing_counter + 1
@@ -193,10 +173,14 @@ async def display_date():
                  setRmOpt('OFF')
               elif ("master" == role) and (True == vm_off):
                  print("Master is waiting Slave connectivity...")
-              else:
-                 print("Activating Slave...")
-                 # TODO
+              elif ("slave" == role) and (False == slave_activate):
+                    print("Activating Slave...")
+                    # TODO
+                    slave_activate = True
+              elif ("slave" == role) and (True == slave_activate):
+                 print("Slave is waiting Master connectivity...")
+                    
 
         await asyncio.sleep(keepalive_time_sec)
 
-asyncio.run(display_date())
+asyncio.run(run_keep_alive())
