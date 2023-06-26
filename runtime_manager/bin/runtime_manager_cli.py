@@ -714,6 +714,17 @@ def test(application_dir):
     print("Infra content:")
     print(yaml.safe_dump(infras_file, indent=2))
 
+    if os.path.exists(application_dir + "/aisprint/deployments/"  + cfg.current_folder):
+        print("The Current Deployment folder does exist")
+    else:
+        print("The Current Deployment folder does not exist, let's proceed with its creation")
+        try:
+            shutil.copytree(application_dir + "/aisprint/deployments/base", application_dir + "/aisprint/deployments/" + cfg.current_folder)
+        except:
+            print("The files at '" + application_dir +"/aisprint/deployments/base/src ' could not be copied")
+        # shutil.copytree(application_dir + "/aisprint/deployments/base", application_dir + "/aisprint/deployments/" + cfg.current_folder)
+    
+
     files = list(set(glob.glob("%s/*.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"))) - set(glob.glob("%s/infras.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"))))
     pd = yaml_as_dict("%s/aisprint/deployments/%s/production_deployment.yaml" % (application_dir, cfg.current_folder))
     pd["System"]["toscas"] = {}
@@ -753,6 +764,162 @@ def test(application_dir):
             print("The throughput is: %s" % yaml.safe_load(out_3)['throughput'])
             print("\n%s" % out_3)
 
+@click.command()
+@click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
+def test2(application_dir):
+    update_app_dir(application_dir)
+    infras_file = yaml_as_dict("%s/aisprint/deployments/%s/im/infras.yaml" % (application_dir, cfg.current_folder))
+    print("Infra content:")
+    print(yaml.safe_dump(infras_file, indent=2))
+
+    files = list(set(glob.glob("%s/*.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"))) - set(glob.glob("%s/infras.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"))))
+    pd = yaml_as_dict("%s/aisprint/deployments/%s/production_deployment.yaml" % (application_dir, cfg.current_folder))
+    pd["System"]["toscas"] = {}
+    for one_file in files:
+        name_component = one_file.split("/")[-1].split(".")[0]
+        tosca_new_dic = yaml_as_dict(one_file)
+        # tosca_new_dic = place_name(tosca_new_dic)
+        tosca_new_dic["component_name"] = name_component
+        # print(tosca_new_dic["component_name"])
+        pd["System"]["toscas"][name_component] = tosca_new_dic
+
+
+
+    el_updated = []
+
+    qos_files = list(set(glob.glob("%s/*.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/ams"))))
+
+    rootComponent = searchNextComponent(pd, "")
+    while("" != rootComponent):
+        el = pd["System"]["Components"][rootComponent]['executionLayer']
+        rt = getResourcesType(rootComponent, pd)
+        print("Root component: %s" % rootComponent)
+        print("ExecutionLayer: %s" % el)
+        print("Resourcetype: %s" % rt)
+
+        for one_file in qos_files:
+            # print("--- %s" %one_file)
+            if "qos_constraints.yaml" in one_file:
+                print("Global constraints: %s" % one_file)
+            if "qos_constraints_L" + str(el) + ".yaml" in one_file:
+                print("Level constraints: %s" % one_file)
+
+        for item, value in infras_file.items():
+            #print(item)
+            #print(value[0])
+            if(item == rootComponent):
+                output = im_get_outputs_from_url(value[0], cfg.im_auth_path_def)
+                # print("%s OUTPUTS: %s" % (item, yaml.safe_load(output)['outputs']))
+                print("%s FE ip: %s" % (item, yaml.safe_load(output)['outputs']['fe_node_ip']))
+                print(yaml.safe_load(output)['outputs']['fe_node_creds']['token'])
+                # with open("key_fe.pem", 'w') as f:
+                #     f.write(yaml.safe_load(output)['outputs']['fe_node_creds']['token'])
+                # f.close()
+                # run_cmd = subprocess.run(["chmod", "600", "key_fe.pem"])
+                
+                # run_cmd = subprocess.run(["ssh", "-oStrictHostKeyChecking=no", "-i", "key_fe.pem", "cloudadm@"+yaml.safe_load(output)['outputs']['fe_node_ip'], "sudo", "kubectl", "get", "service", "ai-sprint-monit-api", "-n", "ai-sprint-monitoring"], capture_output=True, text=True)
+                # #print("The exit code was: %d" % run_cmd.returncode)
+                # out_2 = run_cmd.stdout.splitlines(True)[1].split(" ")
+                # while("" in out_2):
+                #     out_2.remove("")
+                # print("%s AMS IP: %s" % (item, out_2[2]))
+                # run_cmd = subprocess.run(["ssh", "-oStrictHostKeyChecking=no", "-i", "key_fe.pem", "cloudadm@"+yaml.safe_load(output)['outputs']['fe_node_ip'], "curl", "http://"+out_2[2]+"/monitoring/throughput/"], capture_output=True, text=True)
+                # #print("The exit code was: %d" % run_cmd.returncode)
+                # out_3 = run_cmd.stdout
+                # print("The throughput is: %s" % yaml.safe_load(out_3)['throughput'])
+                # print("\n%s" % out_3)
+
+
+        rootComponent = searchNextComponent(pd, rootComponent)
+        print("\n")
+
+
+
+    # with open("x.yaml", 'w+') as f:
+    #         yaml.safe_dump(pd, f, indent=2)
+
+    # for item, value in infras_file.items():
+    #     print(item)
+    #     print(value[0])
+    #     if(item == rootComponent):
+    #         output = im_get_outputs_from_url(value[0], cfg.im_auth_path_def)
+    #         print("%s FE ip: %s" % (item, yaml.safe_load(output)['outputs']['fe_node_ip']))
+    #         print(yaml.safe_load(output)['outputs']['fe_node_creds']['token'])
+    #         with open("key_fe.pem", 'w') as f:
+    #             f.write(yaml.safe_load(output)['outputs']['fe_node_creds']['token'])
+    #         f.close()
+    #         run_cmd = subprocess.run(["chmod", "600", "key_fe.pem"])
+            
+    #         run_cmd = subprocess.run(["ssh", "-oStrictHostKeyChecking=no", "-i", "key_fe.pem", "cloudadm@"+yaml.safe_load(output)['outputs']['fe_node_ip'], "sudo", "kubectl", "get", "service", "ai-sprint-monit-api", "-n", "ai-sprint-monitoring"], capture_output=True, text=True)
+    #         #print("The exit code was: %d" % run_cmd.returncode)
+    #         out_2 = run_cmd.stdout.splitlines(True)[1].split(" ")
+    #         while("" in out_2):
+    #             out_2.remove("")
+    #         print("%s AMS IP: %s" % (item, out_2[2]))
+    #         run_cmd = subprocess.run(["ssh", "-oStrictHostKeyChecking=no", "-i", "key_fe.pem", "cloudadm@"+yaml.safe_load(output)['outputs']['fe_node_ip'], "curl", "http://"+out_2[2]+"/monitoring/throughput/"], capture_output=True, text=True)
+    #         #print("The exit code was: %d" % run_cmd.returncode)
+    #         out_3 = run_cmd.stdout
+    #         print("The throughput is: %s" % yaml.safe_load(out_3)['throughput'])
+    #         print("\n%s" % out_3)
+
+@click.command()
+@click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
+def test3(application_dir):
+    update_app_dir(application_dir)
+    infras_file = yaml_as_dict("%s/aisprint/deployments/%s/im/infras.yaml" % (application_dir, cfg.current_folder))
+    print("Infra content:")
+    print(yaml.safe_dump(infras_file, indent=2))
+
+    files = list(set(glob.glob("%s/*.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"))) - set(glob.glob("%s/infras.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/im"))))
+    pd = yaml_as_dict("%s/aisprint/deployments/%s/production_deployment.yaml" % (application_dir, cfg.current_folder))
+    pd["System"]["toscas"] = {}
+    for one_file in files:
+        name_component = one_file.split("/")[-1].split(".")[0]
+        tosca_new_dic = yaml_as_dict(one_file)
+        # tosca_new_dic = place_name(tosca_new_dic)
+        tosca_new_dic["component_name"] = name_component
+        # print(tosca_new_dic["component_name"])
+        pd["System"]["toscas"][name_component] = tosca_new_dic
+
+
+
+    el_updated = []
+
+    qos_files = list(set(glob.glob("%s/*.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/ams"))))
+
+    slave_component = ""
+    master_component = ""
+    slave_component_url = ""
+    master_component_url = ""
+
+    rootComponent = searchNextComponent(pd, "")
+    while("" != rootComponent):
+        el = pd["System"]["Components"][rootComponent]['executionLayer']
+        rt = getResourcesType(rootComponent, pd)
+        print("Root component: %s" % rootComponent)
+        print("ExecutionLayer: %s" % el)
+        print("Resourcetype: %s" % rt)
+
+        if "PhysicalAlreadyProvisioned" == rt:
+            slave_component = rootComponent
+        else:
+            master_component = rootComponent
+            break
+
+        rootComponent = searchNextComponent(pd, rootComponent)
+        print("\n")
+
+    for item, value in infras_file.items():
+
+        if(item == slave_component):
+            output = im_get_outputs_from_url(value[0], cfg.im_auth_path_def)
+            slave_component_url = item, yaml.safe_load(output)['outputs']['oscar_service_url']
+            print("%s SLAVE OSCAR URL: %s\n" % (slave_component_url))
+        if(item == master_component):
+            output = im_get_outputs_from_url(value[0], cfg.im_auth_path_def)
+            master_component_url = item, yaml.safe_load(output)['outputs']['oscar_service_url']
+            print("%s MASTER OSCAR URL: %s\n" % (master_component_url))
+
 runtime_manager_cli.add_command(infras)
 runtime_manager_cli.add_command(difference)
 runtime_manager_cli.add_command(outputs)
@@ -760,6 +927,8 @@ runtime_manager_cli.add_command(tosca)
 runtime_manager_cli.add_command(stopallbut1)
 runtime_manager_cli.add_command(startall)
 runtime_manager_cli.add_command(test)
+runtime_manager_cli.add_command(test2)
+runtime_manager_cli.add_command(test3)
 
 # main entry point.
 if __name__ == '__main__':
