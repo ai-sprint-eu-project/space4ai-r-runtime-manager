@@ -572,67 +572,72 @@ def stopallbut1(application_dir):
     components_vms = {}
     vm_status = {}
     for item, value in infras_file.items():
-        print("%s VMS:" % item)
-        #print(value)
-        #print(value[0])
-        a=im_get_vms(value[0], cfg.im_auth_path_def)
-        if(a[0]):
-            s=a[1].split("\n")
-            for vm in s:
-                print(vm)
-                vm_id=int(vm.split("/")[-1:][0])
-                if vm_id>1:
-                    print("Stopping %d" % vm_id)
-                    b=im_put_vm(vm, cfg.im_auth_path_def, "stop")
-                    print(b)
-                    vm_status[vm_id] = "stopping"
-            components_vms[item] = (value[0], vm_status)
-        else:
-            print("-")
-
-    for cmp in components_vms:
-        print(components_vms[cmp][0])
-        for vm_id, status in components_vms[cmp][1].items():
-            print("%s: %s -> %s" % (cmp, vm_id, status))
-
-    end = False
-    cont = 0
-    max_time=(60*60)
-    delay=30
-    while not end and cont < max_time:
-        for cmp in components_vms:
-            #print(components_vms[cmp])
-            for vm_id, status in components_vms[cmp][1].items():
-                #print("%s: %s -> %s" % (cmp, vm_id, status))
-                # Update deployment state
-                print("Updating Vm state... (%s - %s)" % (cmp, vm_id))
-                success, state=im_get_vm(components_vms[cmp][0]+"/vms/"+str(vm_id), cfg.im_auth_path_def, "state")
-                if success:
-                    print("%s -- vm_id: %s - state: %s" % (cmp, vm_id, state))
-                    components_vms[cmp][1][vm_id] = state
-                else:
-                    print("Cannot update vm state!!!")
-        for cmp in components_vms:
-            print(components_vms[cmp])
-            for vm_id, status in components_vms[cmp][1].items():
-                if status in ['pending', 'configured', 'stopping']:
-                    end = False
-                    break
-                elif status in ['stopped']:
-                    end = True
+        output = im_get_outputs_from_url(value[0], cfg.im_auth_path_def)
+        #print("%s FE ip: %s" % (item, yaml.safe_load(output)['outputs']['oscar_service_cred']))
+        if yaml.safe_load(output)['outputs']['oscar_service_cred'] is not None:
+            print("%s VMS:" % item)
+            #print(value)
+            #print(value[0])
+            a=im_get_vms(value[0], cfg.im_auth_path_def)
+            if(a[0]):
+                s=a[1].split("\n")
+                for vm in s:
+                    print(vm)
+                    vm_id=int(vm.split("/")[-1:][0])
+                    if vm_id>1:
+                        print("Stopping %d" % vm_id)
+                        # b=im_put_vm(vm, cfg.im_auth_path_def, "stop")
+                        # print(b)
+                        # vm_status[vm_id] = "stopping"
+                components_vms[item] = (value[0], vm_status)
             else:
-                continue
-            break
+                print("-")
+        else:
+            print("%s is Physical already deployed; no VM action required!" % item)
 
-        if not end:
-            time.sleep(delay)
-            cont += delay
+    # for cmp in components_vms:
+    #     print(components_vms[cmp][0])
+    #     for vm_id, status in components_vms[cmp][1].items():
+    #         print("%s: %s -> %s" % (cmp, vm_id, status))
+
+    # end = False
+    # cont = 0
+    # max_time=(60*60)
+    # delay=30
+    # while not end and cont < max_time:
+    #     for cmp in components_vms:
+    #         #print(components_vms[cmp])
+    #         for vm_id, status in components_vms[cmp][1].items():
+    #             #print("%s: %s -> %s" % (cmp, vm_id, status))
+    #             # Update deployment state
+    #             print("Updating Vm state... (%s - %s)" % (cmp, vm_id))
+    #             success, state=im_get_vm(components_vms[cmp][0]+"/vms/"+str(vm_id), cfg.im_auth_path_def, "state")
+    #             if success:
+    #                 print("%s -- vm_id: %s - state: %s" % (cmp, vm_id, state))
+    #                 components_vms[cmp][1][vm_id] = state
+    #             else:
+    #                 print("Cannot update vm state!!!")
+    #     for cmp in components_vms:
+    #         print(components_vms[cmp])
+    #         for vm_id, status in components_vms[cmp][1].items():
+    #             if status in ['pending', 'configured', 'stopping']:
+    #                 end = False
+    #                 break
+    #             elif status in ['stopped']:
+    #                 end = True
+    #         else:
+    #             continue
+    #         break
+
+    #     if not end:
+    #         time.sleep(delay)
+    #         cont += delay
     
-    print("vms updated. Elapsed: %d" % (cont))
-    for cmp in components_vms:
-        print(components_vms[cmp][0])
-        for vm_id, status in components_vms[cmp][1].items():
-            print("%s: %s -> %s" % (cmp, vm_id, status))
+    # print("vms updated. Elapsed: %d" % (cont))
+    # for cmp in components_vms:
+    #     print(components_vms[cmp][0])
+    #     for vm_id, status in components_vms[cmp][1].items():
+    #         print("%s: %s -> %s" % (cmp, vm_id, status))
 
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
@@ -644,67 +649,73 @@ def startall(application_dir):
     components_vms = {}
     vm_status = {}
     for item, value in infras_file.items():
-        print("%s VMS:" % item)
-        #print(value)
-        #print(value[0])
-        a=im_get_vms(value[0], cfg.im_auth_path_def)
-        if(a[0]):
-            s=a[1].split("\n")
-            for vm in s:
-                print(vm)
-                vm_id=int(vm.split("/")[-1:][0])
-                if vm_id>1:
-                    print("Starting %d" % vm_id)
-                    b=im_put_vm(vm, cfg.im_auth_path_def, "start")
-                    print(b)
-                    vm_status[vm_id] = "starting"
-            components_vms[item] = (value[0], vm_status)
-        else:
-            print("-")
-
-    for cmp in components_vms:
-        print(components_vms[cmp][0])
-        for vm_id, status in components_vms[cmp][1].items():
-            print("%s: %s -> %s" % (cmp, vm_id, status))
-
-    end = False
-    cont = 0
-    max_time=(60*60)
-    delay=30
-    while not end and cont < max_time:
-        for cmp in components_vms:
-            #print(components_vms[cmp])
-            for vm_id, status in components_vms[cmp][1].items():
-                #print("%s: %s -> %s" % (cmp, vm_id, status))
-                # Update deployment state
-                print("Updating Vm state... (%s - %s)" % (cmp, vm_id))
-                success, state=im_get_vm(components_vms[cmp][0]+"/vms/"+str(vm_id), cfg.im_auth_path_def, "state")
-                if success:
-                    print("%s -- vm_id: %s - state: %s" % (cmp, vm_id, state))
-                    components_vms[cmp][1][vm_id] = state
-                else:
-                    print("Cannot update vm state!!!")
-        for cmp in components_vms:
-            print(components_vms[cmp])
-            for vm_id, status in components_vms[cmp][1].items():
-                if status in ['pending', 'starting']:
-                    end = False
-                    break
-                elif status in ['configured']:
-                    end = True
+        output = im_get_outputs_from_url(value[0], cfg.im_auth_path_def)
+        #print("%s FE ip: %s" % (item, yaml.safe_load(output)['outputs']['oscar_service_cred']))
+        if yaml.safe_load(output)['outputs']['oscar_service_cred'] is not None:
+            print("%s VMS:" % item)
+            #print(value)
+            #print(value[0])
+            a=im_get_vms(value[0], cfg.im_auth_path_def)
+            if(a[0]):
+                s=a[1].split("\n")
+                for vm in s:
+                    print(vm)
+                    vm_id=int(vm.split("/")[-1:][0])
+                    if vm_id>1:
+                        print("Starting %d" % vm_id)
+                        # b=im_put_vm(vm, cfg.im_auth_path_def, "start")
+                        # print(b)
+                        vm_status[vm_id] = "starting"
+                components_vms[item] = (value[0], vm_status)
             else:
-                continue
-            break
-
-        if not end:
-            time.sleep(delay)
-            cont += delay
+                print("-")
+        else:
+            print("%s is Physical already deployed; no VM action required!" % item)
     
-    print("vms updated. Elapsed: %d" % (cont))
-    for cmp in components_vms:
-        print(components_vms[cmp][0])
-        for vm_id, status in components_vms[cmp][1].items():
-            print("%s: %s -> %s" % (cmp, vm_id, status))
+
+    # for cmp in components_vms:
+    #     print(components_vms[cmp][0])
+    #     for vm_id, status in components_vms[cmp][1].items():
+    #         print("%s: %s -> %s" % (cmp, vm_id, status))
+
+    # end = False
+    # cont = 0
+    # max_time=(60*60)
+    # delay=30
+    # while not end and cont < max_time:
+    #     for cmp in components_vms:
+    #         #print(components_vms[cmp])
+    #         for vm_id, status in components_vms[cmp][1].items():
+    #             #print("%s: %s -> %s" % (cmp, vm_id, status))
+    #             # Update deployment state
+    #             print("Updating Vm state... (%s - %s)" % (cmp, vm_id))
+    #             success, state=im_get_vm(components_vms[cmp][0]+"/vms/"+str(vm_id), cfg.im_auth_path_def, "state")
+    #             if success:
+    #                 print("%s -- vm_id: %s - state: %s" % (cmp, vm_id, state))
+    #                 components_vms[cmp][1][vm_id] = state
+    #             else:
+    #                 print("Cannot update vm state!!!")
+    #     for cmp in components_vms:
+    #         print(components_vms[cmp])
+    #         for vm_id, status in components_vms[cmp][1].items():
+    #             if status in ['pending', 'starting']:
+    #                 end = False
+    #                 break
+    #             elif status in ['configured']:
+    #                 end = True
+    #         else:
+    #             continue
+    #         break
+
+    #     if not end:
+    #         time.sleep(delay)
+    #         cont += delay
+    
+    # print("vms updated. Elapsed: %d" % (cont))
+    # for cmp in components_vms:
+    #     print(components_vms[cmp][0])
+    #     for vm_id, status in components_vms[cmp][1].items():
+    #         print("%s: %s -> %s" % (cmp, vm_id, status))
 
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
