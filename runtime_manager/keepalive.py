@@ -147,8 +147,19 @@ async def run_keep_alive():
     slave_activate = False
     while running:
         print("***")
-        response = os.system("ping -c 1 " + url + " >/dev/null 2>&1")
-        if response == 0:
+        #response = os.system("ping -c 1 " + url + " >/dev/null 2>&1")
+        #rsvp = run_cmd = subprocess.run(["netstat", "-tulpn", url], capture_output=True, text=True)
+        #print("xxxxxxxxxxxxxxxxxxxx %s" % rsvp.stdout)
+
+        #resp = requests.get(url=url)
+        #print("resp %s" % resp)
+
+        #r = requests.head("https://oscar-cluster-s3hpu74q.aisprint-cefriel.link")
+        try:
+           r = requests.head("https://" + url.split(":")[0], timeout=1.50)
+           print("------ %s" %r.status_code)
+        #response = r.status_code
+        #if response == 0:
            print(f"{url} is UP!")
            alive_missing_counter = 0
            if ("master" == role) and (True == vm_off):
@@ -160,7 +171,8 @@ async def run_keep_alive():
            elif ("slave" == role) and (True == slave_activate):
                  print("Dectivating Slave...")
                  slave_activate = False
-        else:
+        #else:
+        except Exception as ex:
            print(f"{url} is down!")
            alive_missing_counter = alive_missing_counter + 1
            if alive_missing_counter > alive_missing_max:
