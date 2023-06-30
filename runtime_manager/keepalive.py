@@ -16,6 +16,9 @@ url_base = '0.0.0.0'
 alive_missing_counter = 0
 alive_missing_max = 5
 
+role = os.getenv('S4AIR_ROLE')
+print("Role: %s" % role)
+
 ########################################################################
 def get_master_slave(application_dir):
     update_app_dir(application_dir)
@@ -98,29 +101,33 @@ def get_master_slave(application_dir):
                   break
             print("%s MASTER FE ip: %s\n" % (item, yaml.safe_load(output)['outputs']['fe_node_ip']))
 
-    with open("key_fe.pem", 'w') as f:
-        f.write(yaml.safe_load(output)['outputs']['fe_node_creds']['token'])
-    f.close()
-    run_cmd = subprocess.run(["chmod", "600", "key_fe.pem"])
-    run_cmd = subprocess.run(["ssh", "-oStrictHostKeyChecking=no", "-i", "key_fe.pem", "cloudadm@"+yaml.safe_load(output)['outputs']['fe_node_ip'], "less", "/var/tmp/.im/"+master_im+"/oscar_front_conf.yml"], capture_output=True, text=True)
-    out_2 = run_cmd.stdout
-    if "" != out_2:
-        role = 'master'
-        print("CONFIG OSCAR: %s" % yaml.safe_load(out_2)[0]['vars']['dns_host'])
-    else:
-        role = 'slave'
+    # with open("key_fe.pem", 'w') as f:
+    #     f.write(yaml.safe_load(output)['outputs']['fe_node_creds']['token'])
+    # f.close()
+    # run_cmd = subprocess.run(["chmod", "600", "key_fe.pem"])
+    # run_cmd = subprocess.run(["ssh", "-oStrictHostKeyChecking=no", "-i", "key_fe.pem", "cloudadm@"+yaml.safe_load(output)['outputs']['fe_node_ip'], "less", "/var/tmp/.im/"+master_im+"/oscar_front_conf.yml"], capture_output=True, text=True)
+    # out_2 = run_cmd.stdout
+    # if "" != out_2:
+    #     role = 'master'
+    #     print("CONFIG OSCAR: %s" % yaml.safe_load(out_2)[0]['vars']['dns_host'])
+    # else:
+    # #     role = 'slave'
 
-    return (slave_component, slave_component_url[1].replace('https://', ''), master_component, master_component_url[1].replace('https://', ''), role)
+    # return (slave_component, slave_component_url[1].replace('https://', ''), master_component, master_component_url[1].replace('https://', ''), role)
 
+    return (slave_component, slave_component_url[1].replace('https://', ''), master_component, master_component_url[1].replace('https://', ''))
 
 ########################################################################
 
 
+# s, su, m, mu, r = get_master_slave(sys.argv[1])
+
+# role = r
+
+# print(" --%s -->%s\n --%s -->%s\n --role -->%s\n" %(s, su, m, mu, r))
+
 s, su, m, mu, r = get_master_slave(sys.argv[1])
-
-role = r
-
-print(" --%s -->%s\n --%s -->%s\n --role -->%s\n" %(s, su, m, mu, r))
+print(" --%s -->%s\n --%s -->%s\n --role -->%s\n" %(s, su, m, mu, role))
 
 if "master" == role:
     url = su
