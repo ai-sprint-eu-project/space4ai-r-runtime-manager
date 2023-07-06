@@ -61,10 +61,10 @@ async def run_monitoring():
                 else:
                     print("DIFFERENT")
                     # TODO
-                return True, tp
+                #return True, tp
             except Exception as ex:
                 print(str(ex))
-                return False, str(ex)
+                #return False, str(ex)
 
         await asyncio.sleep(keepalive_time_sec)
 
