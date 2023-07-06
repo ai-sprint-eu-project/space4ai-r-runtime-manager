@@ -36,34 +36,35 @@ def setRmOpt(status):
 
 async def run_monitoring():
     print("dir: %s" % dir_path)
-    status = getRmOpt()
-    print("-%s-" % status)
-    if "ON" == status:
-        try:
-            run_cmd = subprocess.run(["curl", "http://ai-sprint-monit-api.ai-sprint-monitoring/monitoring/throughput/"], capture_output=True, text=True)
-            out_3 = run_cmd.stdout
-            tp = yaml.safe_load(out_3)['throughput']
-            print("The throughput is: %s" % tp)
-            tp_f = float(tp)
-            f = open(tp_file, "r")
-            tp_0 = float(f.readline())
-            f.close()
-            f = open("tp", "w")
-            #f.truncate(0)
-            f.write(str(tp))
-            f.close()
-            tpx = tp_0 - delta
-            tpy = tp_0 + delta
-            print("%f - %f" % (tpx, tpy))
-            if tpx <= tp_f <= tpy:
-                print("SAME")
-            else:
-                print("DIFFERENT")
-                # TODO
-            return True, tp
-        except Exception as ex:
-            print(str(ex))
-            return False, str(ex)
+    while(True):
+        status = getRmOpt()
+        print("-%s-" % status)
+        if "ON" == status:
+            try:
+                run_cmd = subprocess.run(["curl", "http://ai-sprint-monit-api.ai-sprint-monitoring/monitoring/throughput/"], capture_output=True, text=True)
+                out_3 = run_cmd.stdout
+                tp = yaml.safe_load(out_3)['throughput']
+                print("The throughput is: %s" % tp)
+                tp_f = float(tp)
+                f = open(tp_file, "r")
+                tp_0 = float(f.readline())
+                f.close()
+                f = open("tp", "w")
+                #f.truncate(0)
+                f.write(str(tp))
+                f.close()
+                tpx = tp_0 - delta
+                tpy = tp_0 + delta
+                print("%f - %f" % (tpx, tpy))
+                if tpx <= tp_f <= tpy:
+                    print("SAME")
+                else:
+                    print("DIFFERENT")
+                    # TODO
+                return True, tp
+            except Exception as ex:
+                print(str(ex))
+                return False, str(ex)
 
         await asyncio.sleep(keepalive_time_sec)
 
