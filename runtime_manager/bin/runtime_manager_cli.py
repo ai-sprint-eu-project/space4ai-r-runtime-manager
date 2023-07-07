@@ -132,7 +132,29 @@ def difference(application_dir,
                 if not("infid") in tosca_old_dic.keys():
                     tosca_old_dic["infid"] = "AlreadyProvisioned%s" % i
                     i += 1
-            
+
+            print(production_old_dic["System"]["Components"])
+            rd = production_old_dic["System"]["Components"].copy()
+            for item, value in rd.items():
+                print(item)
+                cn = production_old_dic["System"]["Components"][item]["name"]
+                print(cn)
+                production_old_dic["System"]["Components"][cn] = rd[item]
+                print(production_old_dic["System"]["Components"][cn])
+                del production_old_dic["System"]["Components"][item]
+            print(production_old_dic["System"]["Components"])
+
+            print(production_new_dic["System"]["Components"])
+            rd = production_new_dic["System"]["Components"].copy()
+            for item, value in rd.items():
+                print(item)
+                cn = production_new_dic["System"]["Components"][item]["name"]
+                print(cn)
+                production_new_dic["System"]["Components"][cn] = rd[item]
+                print(production_new_dic["System"]["Components"][cn])
+                del production_new_dic["System"]["Components"][item]
+            print(production_new_dic["System"]["Components"])
+
             print("============================================")
             print("Deployed component:      %s" % tosca_old_dic["component_name"])
             print("Deployed infrastructure: %s" % tosca_old_dic["infid"])
@@ -392,7 +414,7 @@ def difference(application_dir,
             ###################
             print("=====> UPDATE COMPONENTS <=====")
             #print("Don't...")
-            oscar_cli(new_dir, fdls, case, remove_bucket)
+            #oscar_cli(new_dir, fdls, case, remove_bucket)
             print("\n")
         else:
              print("=====> WE ARE NOT APPLYNG THE CHANGES...<=====")

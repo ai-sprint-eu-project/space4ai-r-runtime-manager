@@ -17,6 +17,7 @@ keepalive_time_sec = 10
 dir_path = os.path.dirname(os.path.realpath(__file__))
 tp_file = dir_path + "/tp"
 delta = 0.01
+app_dir = sys.argv[1]
 
 def getRmOpt():
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -35,10 +36,11 @@ def setRmOpt(status):
     f.close()
 
 async def run_monitoring():
-    print("dir: %s" % dir_path)
+    print("working dir: %s" % dir_path)
+    print("application dir: %s" % app_dir)
     while(True):
         status = getRmOpt()
-        print("-%s-" % status)
+        print("-%s-\n" % status)
         if "ON" == status:
             try:
                 run_cmd = subprocess.run(["curl", "http://ai-sprint-monit-api.ai-sprint-monitoring/monitoring/throughput/"], capture_output=True, text=True)
@@ -61,10 +63,16 @@ async def run_monitoring():
                 else:
                     print("DIFFERENT")
                     # TODO
-                #return True, tp
+                print("Optimizing...")
+                print("@@@@@@@@@@@@@@@@@@@@@@@@@")
+                cmd = ["/bin/sh", "-c" , "cd /home/SPACE4AI-R/optimiser/ && python3 s4ai-r-opt.py --application_dir " + app_dir +" --RG_n_iterations 10 --LS_n_iterations  2 --load " + str(tp)]
+                run_cmd = subprocess.run(cmd, capture_output=True, text=True)
+                out_3 = run_cmd.stdout
+                print(out_3, end="")
+                print("@@@@@@@@@@@@@@@@@@@@@@@@@")
             except Exception as ex:
                 print(str(ex))
-                #return False, str(ex)
+                return False, str(ex)
 
         await asyncio.sleep(keepalive_time_sec)
 
