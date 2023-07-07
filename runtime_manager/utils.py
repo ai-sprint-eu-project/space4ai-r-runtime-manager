@@ -563,21 +563,48 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
             sameExecution, diff = compareExecution(production_old_dic, dic, component, se)
             if (True == sameExecution):
                 print("Same execution: nothing to do, just update infrastructure state.")
-                res = sameTosca(component, old_dir, case, dic)
+                #res = sameTosca(component, old_dir, case, dic)
                 
-                print(yaml.safe_dump(res, indent=2))
+                #print(yaml.safe_dump(res, indent=2))
             else:
                 print(diff)
-                #value = list(list(diff.values())[0].values())[0]
-                #nv = value['new_value']
+                value = list(list(diff.values())[0].values())[0]
+                nv = value['new_value']
+                ov = value['old_value']
+                print("old - new: %d - %d" % (ov,nv))
                 print("Same execution with changed flavour: Updating infrastructure %s..." % getInfraId(se, old_dir).get('infraUrl'))
-                res = updateTosca(component, se, new_dir, old_dir, case)
-                print(yaml.safe_dump(res, indent=2))
+                #for i in range(1,7):
+                #        print("vm: %d" % i)
+                # nv = 4
+                # ov = 1
+
+                #infras_file = yaml_as_dict("%s/aisprint/deployments/%s/im/infras.yaml" % (old_dir, "cfg.current_folder"))
+                #infras_file = "%s/infras.yaml" % old_dir
+                infras_file = yaml_as_dict("%s/infras.yaml" % old_dir)
+                for item, value in infras_file.items():
+                    if component == item:
+                        output = im_interface.im_get_outputs_from_url(value[0], cfg.im_auth_path_def)
+                        print("%s VMS:" % item)
+                        a=im_interface.im_get_vms(value[0], cfg.im_auth_path_def)
+                        if(a[0]):
+                            s=a[1].split("\n")
+                            for vm in s:
+                                print(vm)
+                                vm_id=int(vm.split("/")[-1:][0])
+                                if (ov < nv) and (vm_id >= nv):
+                                    print("Switching ON VM # %d..." % vm_id)
+                                    print(vm)
+                                elif (nv < ov) and (vm_id > nv):
+                                    print("Switching OFF VM # %d..." % vm_id)
+
+                #res = updateTosca(component, se, new_dir, old_dir, case)
+                #print(yaml.safe_dump(res, indent=2))
 
         im_infras = "%s/infras.yaml" % new_dir
         print("Saving updated infras.yaml (%s)" % im_infras)
         with open(im_infras, 'a+') as f:
-            yaml.safe_dump(res, f, indent=2)
+            #yaml.safe_dump(res, f, indent=2)
+            yaml.safe_dump(infras_file, f, indent=2)
 
     else:
         print("Phisical resource action ...")

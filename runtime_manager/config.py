@@ -20,7 +20,7 @@ im_url_def = "https://appsgrycap.i3m.upv.es:31443/im"
 oscar_cli_cmd = "~/go/bin/oscar-cli"
 minio_cli_cmd = "~/minio-binaries/mc"
 runtime_cli_cmd ="bin/runtime_manager_cli.py"
-current_folder = "current"
+current_folder = "current_deployment"
 
 def update_app_dir(dir):
     global app_dir
