@@ -566,12 +566,14 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
                 #res = sameTosca(component, old_dir, case, dic)
                 
                 #print(yaml.safe_dump(res, indent=2))
+
+                infras_file = yaml_as_dict("%s/infras.yaml" % old_dir)
             else:
                 print(diff)
                 value = list(list(diff.values())[0].values())[0]
                 nv = value['new_value']
                 ov = value['old_value']
-                print("old - new: %d - %d" % (ov,nv))
+                print("%d --> %d" % (ov,nv))
                 print("Same execution with changed flavour: Updating infrastructure %s..." % getInfraId(se, old_dir).get('infraUrl'))
                 #for i in range(1,7):
                 #        print("vm: %d" % i)
@@ -591,12 +593,16 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
                             for vm in s:
                                 print(vm)
                                 vm_id=int(vm.split("/")[-1:][0])
-                                if (ov < nv) and (vm_id >= nv):
+                                if (nv > ov) and (vm_id > ov) and (vm_id <= nv):
                                     print("Switching ON VM # %d..." % vm_id)
-                                    print(vm)
+                                    b=im_interface.im_put_vm(vm, cfg.im_auth_path_def, "start")
+                                    print(b)
+                                    #print(vm)
                                 elif (nv < ov) and (vm_id > nv):
                                     print("Switching OFF VM # %d..." % vm_id)
-
+                                    b=im_interface.im_put_vm(vm, cfg.im_auth_path_def, "stop")
+                                    print(b)
+                                    #print(vm)
                 #res = updateTosca(component, se, new_dir, old_dir, case)
                 #print(yaml.safe_dump(res, indent=2))
 
