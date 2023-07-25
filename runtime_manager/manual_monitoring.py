@@ -20,6 +20,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 tp_file = dir_path + "/tp"
 delta = 0.05
 app_dir = sys.argv[1]
+tp = float(sys.argv[2])
 
 def getRmOpt():
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -32,42 +33,22 @@ def getRmOpt():
 def setRmOpt(status):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     rm_opt_file = dir_path + "/rm_opt"
-    #print(rm_opt_file)
     f = open(rm_opt_file,'w')
     f.write(status)
     f.close()
 
 async def run_monitoring():
+    global tp
     print("working dir: %s" % dir_path)
     print("application dir: %s" % app_dir)
     while(True):
         status = getRmOpt()
         print("-%s-\n" % status)
+        print("tp [req/min]: %s" % tp)
+        tp = tp / 60
+        print("tp [req/min]: %s" % tp)
         if "ON" == status:
             try:
-                run_cmd = subprocess.run(["curl", "http://ai-sprint-monit-api.ai-sprint-monitoring/monitoring/throughput/"], capture_output=True, text=True)
-                out_3 = run_cmd.stdout
-                tp = yaml.safe_load(out_3)['throughput']
-                ct = datetime.datetime.now()
-                ts = ct.timestamp()
-                print("The throughput @ %s [%s] is: %s" % (ct, ts, tp))
-                tp_f = float(tp)
-                f = open(tp_file, "r")
-                tp_0 = float(f.readline())
-                f.close()
-                f = open("tp", "w")
-                #f.truncate(0)
-                f.write(str(tp))
-                f.close()
-                tpx = tp_0 - (delta * tp_0)
-                tpy = tp_0 + (delta * tp_0)
-                print("%f -[%f]- %f" % (tpx, tp_0, tpy))
-                if tpx <= tp_f <= tpy:
-                    print("SAME")
-                else:
-                    print("DIFFERENT")
-
-
                 if (tp==0):
                     print("0")
                 else:
@@ -98,12 +79,11 @@ async def run_monitoring():
                        print("#########################")
                     else:
                        print("No opt, througput is 0")
-
-
             except Exception as ex:
                 print(str(ex))
                 return False, str(ex)
-        #return True
+
+        return True
         await asyncio.sleep(keepalive_time_sec)
 
 asyncio.run(run_monitoring())
