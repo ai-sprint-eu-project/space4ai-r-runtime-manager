@@ -17,7 +17,9 @@ alive_missing_counter = 0
 alive_missing_max = 5
 
 role = os.getenv('S4AIR_ROLE')
+appdir = os.getenv('S4AIR_APP')
 print("Role: %s" % role)
+print("App dir: %s" % appdir)
 
 ########################################################################
 def get_master_slave(application_dir):
@@ -53,12 +55,6 @@ def get_master_slave(application_dir):
         # print(tosca_new_dic["component_name"])
         pd["System"]["toscas"][name_component] = tosca_new_dic
 
-
-
-    el_updated = []
-
-    qos_files = list(set(glob.glob("%s/*.yaml" % (application_dir + "/aisprint/deployments/" + cfg.current_folder + "/ams"))))
-
     slave_component = ""
     master_component = ""
     slave_component_url = ""
@@ -68,8 +64,16 @@ def get_master_slave(application_dir):
 
     rootComponent = searchNextComponent(pd, "")
     while("" != rootComponent):
-        el = pd["System"]["Components"][rootComponent]['executionLayer']
-        rt = getResourcesType(rootComponent, pd)
+        for item, value in pd["System"]["Components"].items():
+           print(item, value['name'])
+           if rootComponent == value['name']:
+              el = pd["System"]["Components"][item]['executionLayer']
+
+        for item, values in pd["System"]["NetworkDomains"].items():
+           for item2, values2 in values["ComputationalLayers"].items():
+              if (el == values2['number']):
+                rt = values2['type']
+        #rt = getResourcesType(rootComponent, pd)
         print("Root component: %s" % rootComponent)
         print("ExecutionLayer: %s" % el)
         print("Resourcetype: %s" % rt)
@@ -79,6 +83,10 @@ def get_master_slave(application_dir):
         else:
             master_component = rootComponent
             break
+
+        if ("" == master_component):
+            master_component = slave_component
+            slave_component = ""
 
         rootComponent = searchNextComponent(pd, rootComponent)
         print("\n")
@@ -94,12 +102,12 @@ def get_master_slave(application_dir):
             master_component_url = item, yaml.safe_load(output)['outputs']['oscar_service_url']
             print("MASTER OSCAR URL: %s" % master_component_url[1])
 
-            for item, value in infras_file.items():
-               if master_component == item:
-                  master_im = value[0].split("/")[-1:][0]
-                  print("MASTER IM: %s" % master_im)
-                  break
-            print("%s MASTER FE ip: %s\n" % (item, yaml.safe_load(output)['outputs']['fe_node_ip']))
+            # for item, value in infras_file.items():
+            #    if master_component == item:
+            #       master_im = value[0].split("/")[-1:][0]
+            #       print("MASTER IM: %s" % master_im)
+            #       break
+            # print("%s MASTER FE ip: %s\n" % (item, yaml.safe_load(output)['outputs']['fe_node_ip']))
 
     # with open("key_fe.pem", 'w') as f:
     #     f.write(yaml.safe_load(output)['outputs']['fe_node_creds']['token'])
@@ -120,13 +128,19 @@ def get_master_slave(application_dir):
 ########################################################################
 
 
-# s, su, m, mu, r = get_master_slave(sys.argv[1])
+if sys.argv[1]:
+    application_location = sys.argv[1]
+else:
+    application_location = appdir
 
-# role = r
+s, su, m, mu, r = get_master_slave(application_location)
 
-# print(" --%s -->%s\n --%s -->%s\n --role -->%s\n" %(s, su, m, mu, r))
 
-s, su, m, mu, r = get_master_slave(sys.argv[1])
+role = os.getenv('S4AIR_ROLE')
+appdir = os.getenv('S4AIR_APP')
+print("Role: %s" % role)
+print("App dir: %s" % appdir)
+
 print(" --%s -->%s\n --%s -->%s\n --role -->%s\n" %(s, su, m, mu, role))
 
 if "master" == role:
@@ -152,16 +166,9 @@ async def run_keep_alive():
     global running
     vm_off = False
     slave_activate = False
+    setRmOpt('OFF')
     while running:
         print("***")
-        #response = os.system("ping -c 1 " + url + " >/dev/null 2>&1")
-        #rsvp = run_cmd = subprocess.run(["netstat", "-tulpn", url], capture_output=True, text=True)
-        #print("xxxxxxxxxxxxxxxxxxxx %s" % rsvp.stdout)
-
-        #resp = requests.get(url=url)
-        #print("resp %s" % resp)
-
-        #r = requests.head("https://oscar-cluster-s3hpu74q.aisprint-cefriel.link")
         try:
            r = requests.head("https://" + url.split(":")[0], timeout=1.50)
            print("------ %s" %r.status_code)
@@ -169,15 +176,20 @@ async def run_keep_alive():
         #if response == 0:
            print(f"{url} is UP!")
            alive_missing_counter = 0
-           if ("master" == role) and (True == vm_off):
-                 print("Master is switching on all VMs...")
-                 # TODO
-                 vm_off = False
-                 print("Activating Master...")
-                 setRmOpt('ON')
-           elif ("slave" == role) and (True == slave_activate):
-                 print("Dectivating Slave...")
-                 slave_activate = False
+           # MASTER
+           if ("master" == role):
+                # VMs were OFF, let's switch them all ON
+                if (True == vm_off):
+                    print("Master is switching on all VMs...")
+                    # TODO
+                    vm_off = False
+                    print("Activating Master...")
+                    setRmOpt('ON')
+            # SLAVE
+            else:
+                if (True == slave_activate):
+                    print("Dectivating Slave...")
+                    slave_activate = False
         #else:
         except Exception as ex:
            print(f"{url} is down!")

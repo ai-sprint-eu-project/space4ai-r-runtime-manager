@@ -233,6 +233,7 @@ def searchLeaf(dic):
     return returnValue
 
 def searchPreviousComponent(dic, component):
+    #print(dic)
     returnValue = ""
     if ("" == component):
         returnValue = searchLeaf(dic)
@@ -276,6 +277,7 @@ def searchNextComponent(dic, component):
 def searchRoot(dic):
     returnValue = ""
     for component_new, values_new in dic["System"]["toscas"].items():
+        #print("--->>> ", component_new)
         clu = values_new["topology_template"]["inputs"]["cluster_name"]["default"]
         input_path = values_new["topology_template"]["node_templates"]["oscar_service_"+component_new]["properties"]["input"][0]["path"]
         #print("xxxxxx %s" % component_new, input_path)
@@ -890,6 +892,8 @@ def save_toscas_fdl(new_dir, toscas, case):
         done.append(identifier)
 
         #Save toscas that have been modified
+        if not os.path.isdir("%s/production/ready-toscas/" % new_dir):
+            os.makedirs("%s/production/ready-toscas/" % new_dir)
         with open("%s/production/ready-toscas/%s-ready.yaml" % (new_dir, name), 'w+') as f:
             yaml.safe_dump(tosca, f, indent=2)
     fdls["functions"]["oscar"] = clusters
