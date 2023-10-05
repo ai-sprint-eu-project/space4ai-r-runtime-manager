@@ -19,6 +19,7 @@ six == 1.16.0
 urllib3 == 1.26.11 
 wheel == 0.37.1 
 # yaml == 0.2.5 
+Werkzeug==2.2.2
 Flask == 2.2.2 
 deepdiff == 6.2.1
 ordered-set == 4.1.0
