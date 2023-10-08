@@ -50,7 +50,13 @@ async def run_monitoring():
                 tp = yaml.safe_load(out_3)['throughput']
                 ct = datetime.datetime.now()
                 ts = ct.timestamp()
-                print("The throughput @ %s [%s] is: %s" % (ct, ts, tp))
+                #print("The throughput @ %s [%s] is: %s" % (ct, ts, tp))
+                with open("ams", "r") as f:
+                    tp = f.readline().replace('\n','').replace('\t','')
+                d = '2023-10-08 15:08:02'
+                dt = datetime.datetime.strptime(d, '%Y-%m-%d %H:%M:%S')
+                print("The throughput @ %s is: %s" % (dt+datetime.timedelta(minutes=m0), tp))
+                m0=m0+2
                 tp_f = float(tp)
                 f = open(tp_file, "r")
                 tp_0 = float(f.readline())
@@ -63,15 +69,15 @@ async def run_monitoring():
                 tpy = tp_0 + (delta * tp_0)
                 print("%f -[%f]- %f" % (tpx, tp_0, tpy))
                 if tpx <= tp_f <= tpy:
-                    print("SAME")
-                else:
-                    print("DIFFERENT")
+                    print("<<< Throughput is in the acceptance range. No optimization/reconfiguration is required >>>")
+                #else:
+                #    print("DIFFERENT")
 
 
-                if (tp==0):
-                    print("0")
+                #if (tp==0):
+                #    print("0")
                 else:
-                    print("...")
+                    #print("...")
                     if (tp != 0):
                        print("Optimizing...")
                        print("@@@@@@@@@@@@@@@@@@@@@@@@@")

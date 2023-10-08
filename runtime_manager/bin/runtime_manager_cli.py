@@ -63,7 +63,8 @@ def difference(application_dir,
     update_app_dir(application_dir)
 
     if os.path.exists(application_dir + "/aisprint/deployments/"  + cfg.current_folder):
-        print("The Current Deployment folder does exist")
+        #print("The Current Deployment folder does exist")
+        print("")
     else:
         print("The Current Deployment folder does not exist, let's proceed with its creation")
         try:
@@ -87,7 +88,7 @@ def difference(application_dir,
 
     # Creating empty infras.yaml
     im_infras = "%s/infras.yaml" % new_dir
-    print("Put empty infras in new deployment (%s)" % im_infras)
+    #print("Put empty infras in new deployment (%s)" % im_infras)
     with open(im_infras, 'w') as f:
         pass
 
@@ -114,7 +115,7 @@ def difference(application_dir,
     # files = glob.glob("%s/*.yaml" % old_dir)
     if DeepDiff(production_old_dic, production_new_dic, ignore_order=True) != {}:
     #if 0:
-        print("The 'Production deployment' files are different")
+        print("<<< The 'Production deployment' files are different >>>")
         #files = list(set(glob.glob("%s/*.yaml" % old_dir)) - set(glob.glob("%s/infras.yaml" % old_dir)))
         filesUnfiltered = glob.glob("%s/*.yaml" % old_dir)
         files = [r for r in filesUnfiltered if not "infras.yaml" in r]
@@ -395,7 +396,7 @@ def difference(application_dir,
             #files = list(set(glob.glob("%s/*.yaml" % (old_dir))) - set(glob.glob("%s/infras.yaml" % (old_dir))))
             #print(files)
     else:
-        print("The 'Production deployment' files are the same, none action will be performed")
+        print("<<< The 'Production deployment' files are the same, no action will be performed >>>")
 
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)
