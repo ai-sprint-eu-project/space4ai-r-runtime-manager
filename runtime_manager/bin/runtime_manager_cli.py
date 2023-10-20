@@ -30,6 +30,17 @@ import subprocess
 from config import update_app_dir
 import config as cfg
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 @click.group()
 def runtime_manager_cli():
     pass
@@ -115,24 +126,25 @@ def difference(application_dir,
     # files = glob.glob("%s/*.yaml" % old_dir)
     if DeepDiff(production_old_dic, production_new_dic, ignore_order=True) != {}:
     #if 0:
-        print("<<< The 'Production deployment' files are different >>>")
+        print('\x1b[0;30;47m' + f"<<< The 'Production deployment' files are different >>>"  + '\x1b[0m')
+        #print("<<< The 'Production deployment' files are different >>>")
         #files = list(set(glob.glob("%s/*.yaml" % old_dir)) - set(glob.glob("%s/infras.yaml" % old_dir)))
         filesUnfiltered = glob.glob("%s/*.yaml" % old_dir)
         files = [r for r in filesUnfiltered if not "infras.yaml" in r]
-        print("XMLs: ", files)
+        #print("XMLs: ", files)
         production_old_dic["System"]["toscas"] = {}
         i = 0
         for one_file in files:
             tosca_old_dic = yaml_as_dict(one_file)
-            print("---TOSCA: %s---" % one_file)
-            print("---KEYS: %s---" % tosca_old_dic.keys())
+            #print("---TOSCA: %s---" % one_file)
+            #print("---KEYS: %s---" % tosca_old_dic.keys())
             if not("component_name") in tosca_old_dic.keys():
                 input_ext = os.path.splitext(os.path.basename(one_file))[0]
                 tosca_old_dic["component_name"] = input_ext
-            if ("type") in tosca_old_dic.keys():
-                if not("infid") in tosca_old_dic.keys():
-                    infraId = getInfraId(tosca_old_dic["component_name"], old_dir)
-                    tosca_old_dic["infid"] = infraId
+            #if ("type") in tosca_old_dic.keys():
+            if not("infid") in tosca_old_dic.keys():
+                infraId = getInfraId(tosca_old_dic["component_name"], old_dir)
+                tosca_old_dic["infid"] = infraId["infraId"]
             else:
                 #print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX!!!!! PROVISIONED!!!")
                 tosca_old_dic["type"] = "PhysicalAlreadyProvisioned"
@@ -207,7 +219,7 @@ def difference(application_dir,
         #files = list(set(glob.glob("%s\*.yaml" % new_dir)) - set(glob.glob("%s\infras.yaml" % new_dir)))
         filesUnfiltered = glob.glob("%s/*.yaml" % new_dir)
         files = [r for r in filesUnfiltered if not "infras.yaml" in r]
-        print("XMLs: ", files)
+        #print("XMLs: ", files)
         production_new_dic["System"]["toscas"] = {}
         for one_file in files:
             
@@ -396,7 +408,8 @@ def difference(application_dir,
             #files = list(set(glob.glob("%s/*.yaml" % (old_dir))) - set(glob.glob("%s/infras.yaml" % (old_dir))))
             #print(files)
     else:
-        print("<<< The 'Production deployment' files are the same, no action will be performed >>>")
+        print('\x1b[0;30;47m' + f"<<< The 'Production deployment' files are the same, no action will be performed >>>"  + '\x1b[0m')
+        #print("<<< The 'Production deployment' files are the same, no action will be performed >>>")
 
 @click.command()
 @click.option("--application_dir", help="Path to the AI-SPRINT application.", required=True, default=None)

@@ -25,6 +25,17 @@ import glob
 from config import im_url_def, oscar_cli_cmd, minio_cli_cmd
 import config as cfg
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 def create_optimal_deployment(application_dir):
     can_deployments = yaml_as_dict(application_dir + "/common_config/candidate_deployments.yaml")
     can_resources = yaml_as_dict(application_dir + "/common_config/candidate_resources.yaml")
@@ -598,10 +609,13 @@ def updateComponentDeployment(dic, component, production_old_dic, new_dir, old_d
                                 if (nv > ov) and (vm_id > ov) and (vm_id <= nv):
                                     print("Switching ON VM # %d..." % vm_id)
                                     b=im_interface.im_put_vm(vm, cfg.im_auth_path_def, "start")
-                                    print(b)
+                                    if b[0]:
+                                        print('\x1b[0;30;47m' + f"VM # {vm_id} --> STARTED" + '\x1b[0m')
+                                    else:
+                                        print('\x1b[0;30;47m' + f"VM # %d --> NOT STARTED {vm_id} ({b[1]})"  + '\x1b[0m')
                                     #print(vm)
                                 elif (nv < ov) and (vm_id > nv):
-                                    print("Switching OFF VM # %d..." % vm_id)
+                                    print('\x1b[0;30;47m' + f"Switching OFF VM # {vm_id}..." + '\x1b[0m')
                                     b=im_interface.im_put_vm(vm, cfg.im_auth_path_def, "stop")
                                     print(b)
                                     #print(vm)

@@ -143,7 +143,7 @@ def im_put_vm(inf_id, im_auth_path_def, prop="stop"):
         resp = requests.request("PUT", "%s/%s" % (inf_id, prop), headers=headers)
         print(resp.request.url)
         #print(resp.request.body)
-        print(resp.request.headers)
+        #print(resp.request.headers)
         #print(resp.text)
         success = resp.status_code == 200
         if success:
