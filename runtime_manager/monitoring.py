@@ -15,7 +15,7 @@ import os
 import datetime
 import time
 
-keepalive_time_sec = 12
+keepalive_time_sec = 6
 dir_path = os.path.dirname(os.path.realpath(__file__))
 tp_file = dir_path + "/tp"
 delta = 0.05
@@ -57,7 +57,7 @@ async def run_monitoring():
                 # print("The throughput @ %s [%s] is: %s" % (ct, ts, tp))
                 with open("ams", "r") as f:
                     tp = f.readline().replace('\n','').replace('\t','')
-                d = '2023-10-08 15:08:02'
+                d = '2023-10-08 15:32:02'
                 dt = datetime.datetime.strptime(d, '%Y-%m-%d %H:%M:%S')
                 print(f"The throughput @ {dt+datetime.timedelta(minutes=m0)} is: " + '\x1b[0;30;47m' + f"{tp}"  + '\x1b[0m')
                 #print("The throughput @ %s is: %s" % (dt+datetime.timedelta(minutes=m0), tp))
