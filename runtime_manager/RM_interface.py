@@ -58,7 +58,7 @@ def krake():
         else:
             return 'Content-Type not supported!' 
 
-        return jsonify("KRAKE", 0, 200)
+        return jsonify("KRAKE", o, 200)
     else:
         return jsonify("ERROR", 404)
 
