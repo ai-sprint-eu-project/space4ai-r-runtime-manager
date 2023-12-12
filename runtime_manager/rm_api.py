@@ -12,7 +12,7 @@ import logging
 ###############
 # Definitions #
 ###############
-app = Flask("IM-interface")
+app = Flask("rm_api")
 print(sys.path.append("./"))
 from config import runtime_cli_cmd
 

@@ -1,1 +1,1 @@
-*/5 * * * * /usr/bin/python3 /home/SPACE4AI-R/runtime_manager/runtime_manager/monitor_interface.py >> /home/SPACE4AI-R/runtime_manager/runtime_manager/cron.log 2>&1
+*/5 * * * * /usr/bin/python3 /home/SPACE4AI-R/runtime_manager/runtime_manager/ams_monitoring.py >> /home/SPACE4AI-R/runtime_manager/runtime_manager/cron.log 2>&1
